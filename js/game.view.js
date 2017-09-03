@@ -1,4 +1,4 @@
-define(['game.data', 'pixi'], function (data, PIXI) {
+define(['game.data', 'pixi'], (data, PIXI) => {
     
     'use strict';
     
@@ -76,7 +76,7 @@ define(['game.data', 'pixi'], function (data, PIXI) {
                 this.view.text = v;
                 this.update();
             });
-            this.data.on_set('align', ( ) => this.update());
+            this.data.on_set('align', () => this.update());
         }
         
         update () {
@@ -240,7 +240,7 @@ define(['game.data', 'pixi'], function (data, PIXI) {
                 else    this.data.tween('scale', 1);
             })
             
-            this.click(( ) => this.data.thumb = !this.data.thumb);
+            this.click(() => this.data.thumb = !this.data.thumb);
         }
 
         click (action) {

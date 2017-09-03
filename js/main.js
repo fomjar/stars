@@ -1,9 +1,8 @@
-require(['game'], function (game) {
+require(['logic'], (logic) => {
     
     'use strict';
-
-    document.game = game;
-    document.game.init();
+    
+    logic.init();
 
 });
 

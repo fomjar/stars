@@ -1,4 +1,4 @@
-define(['tween'], function (tween) {
+define(['game.tween'], (tween) => {
     
     'use strict';
     
@@ -42,7 +42,7 @@ define(['tween'], function (tween) {
                 app.ticker.remove(ta._tweener[pr]);
                 delete ta._tweener[pr];
             }
-            ta._tweener[pr] = function (delta) {
+            ta._tweener[pr] = (delta) => {
                 time = new Date().getTime() - begin;
                 ta[pr] = fn(time, from, to - from, tm);
                 if (time >= tm) {
@@ -58,8 +58,8 @@ define(['tween'], function (tween) {
             if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
 
             ta[`_${pr}`] = ta[pr];
-            if (!fn) fn = ( ) => ta[`_${pr}`];
-            ta.__defineGetter__(pr, ( ) => fn());
+            if (!fn) fn = () => ta[`_${pr}`];
+            ta.__defineGetter__(pr, () => fn());
         }
         static on_set (ta, pr, fs, fg) {
             if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
