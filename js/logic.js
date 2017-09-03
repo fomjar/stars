@@ -53,11 +53,13 @@ define(['game', 'pixi'], (game, pixi) => {
     }
     
     let init_view = () => {
-        var home = new game.VStar('home');
-        home.data.bindi(game.asset.home);
-        game.app.stage.addChild(home);
+        let stage = game.app.stage;
+        stage.addChild(new game.VPaneResource());
+        stage.addChild(new game.VPaneOperate());
         
-        game.app.stage.addChild(new game.VPaneResource());
+        var home = new game.VStarHome();
+        home.data.bindi(game.asset.home);
+        stage.addChildAt(home, 0);
     };
     
     return logic;

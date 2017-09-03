@@ -10,8 +10,11 @@ define(['game.tween'], (tween) => {
             this.y      = 0;
             this.width  = 1;
             this.height = 1;
-            this.scale  = 1;
-            this.scale_view = 1;
+            this.visible    = true;
+            this.scale      = 1;
+            this.scale_draw = 1;
+            this.alpha      = 1;
+            this.alpha_draw = 1;
         }
         tween   (pr, to, tm, dn)    {Data.tween (this, pr, to, tm, dn);}
         on_get  (pr, fn)            {Data.on_get(this, pr, fn);}
@@ -101,6 +104,7 @@ define(['game.tween'], (tween) => {
     data.DLabel = class DLabel extends data.Data {
         constructor () {
             super();
+            
             this.text   = '';
             this.align  = 'center';
         }
@@ -111,27 +115,52 @@ define(['game.tween'], (tween) => {
     data.DPane = class DPane extends data.Data {
         constructor () {
             super();
-            this.alpha  = 0.8;
+            this.alpha_draw = 0.4;
             this.round  = 6;
             this.border = 2;
-            this.color_bg   = 0xcccccc;
-            this.color_bd   = 0xeeeeee;
+            this.color_bg   = 0x999999;
+            this.color_bd   = 0xcccccc;
+        }
+    };
+    data.DButton = class DButton extends data.DPane {
+        constructor () {
+            super();
+            this.alpha_draw = 1;
+            this.border = 1;
+            
+            this.text   = '';
+        }
+        
+        style_icon_small () {
+            this.width      = 16;
+            this.height     = 16;
+        }
+        
+        style_icon_middle () {
+            this.width      = 24;
+            this.height     = 24;
+        }
+        
+        style_icon_large () {
+            this.width      = 32;
+            this.height     = 32;
+        }
+        
+        style_primary () {
+            this.width      = 72;
+            this.height     = 24;
         }
     };
     data.DPaneResource = class DPaneResource extends data.DPane {
         constructor () {
             super();
-            this.x      = document.game.screen.width / 4 / 2;
-            this.y      = 16;
-            this.width  = this.x * 2;
-            this.height = this.y * 2;
-            this.alpha  = 0.4;
-            this.border = 2;
-            this.color_bg   = 0x9999ff;
-            this.color_bd   = 0x999999;
+            this.width  = 256;
+            this.height = 32;
+            this.x      = this.width / 2;
+            this.y      = this.height / 2;
             
             this.grid   = [];
-            let n = 4;
+            let n = 3;
             for (let i = 0; i < n; i++) {
                 this.grid[i] = {
                     index : i,
@@ -146,46 +175,24 @@ define(['game.tween'], (tween) => {
             }
         }
     };
-    data.DButton = class DButton extends data.DPane {
+    data.DPaneOperate = class DPaneOperate extends data.DPane {
         constructor () {
             super();
-            this.text = '';
-        }
-        
-        style_icon_small () {
-            this.width      = 16;
-            this.height     = 16;
-            this.border     = 1;
-        }
-        
-        style_icon_middle () {
-            this.width      = 24;
-            this.height     = 24;
-            this.border     = 1;
-        }
-        
-        style_icon_large () {
-            this.width      = 32;
-            this.height     = 32;
-            this.border     = 1;
-        }
-        
-        style_primary () {
-            this.width      = 72;
-            this.height     = 24;
-            this.border     = 2;
-            this.color_bg   = 0xff9999;
-            this.color_bd   = 0xcccccc;
+            this.width  = 300;
+            this.height = 120;
+            this.x      = this.width / 2;
+            this.y      = document.game.screen.height - this.height / 2;
         }
     };
     data.DStar = class DStar extends data.DPane {
-        constructor (type) {
+        constructor () {
             super();
-            this.type   = type;
-            this.level  = 1;
+            this.alpha_draw = 1;
+            this.border = 0;
+            
             this.radius = 1;
-            this.border = 4;
-            this.thumb  = true;
+            this.level  = 1;
+            this.type   = '';
             
             this.on_set('radius', (v) => {
                 this.width  = v * 2;
@@ -202,7 +209,7 @@ define(['game.tween'], (tween) => {
         style_type () {
             switch (this.type) {
                 case 'home':
-                    this.color_bg   = 0xffff99;
+                    this.color_bg   = 0xcccc99;
                     this.color_bd   = 0x999999;
                     break;
             }

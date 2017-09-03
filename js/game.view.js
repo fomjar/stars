@@ -17,17 +17,19 @@ define(['game.data', 'pixi'], (data, PIXI) => {
                 }
             };
             find_data(this.__proto__);
+
+            this.state  = 'default';
             
-            this.data.on_set('x',       (v) => this.position.x = v);
-            this.data.on_set('y',       (v) => this.position.y = v);
+            this.data.bindo(this.position, 'x');
+            this.data.bindo(this.position, 'y');
 //            this.data.on_set('width',   (v) => this.width  = v);
 //            this.data.on_set('height',  (v) => this.height = v);
+            this.data.bindo(this, 'alpha');
             this.data.on_set('scale',   (v) => {
                 this.scale.x = v;
                 this.scale.y = v;
             });
-
-            this.state  = 'default';
+            this.data.bindo(this, 'visible');
         }
         
         draw () {}
@@ -42,23 +44,23 @@ define(['game.data', 'pixi'], (data, PIXI) => {
             this.removeAllListeners('pointerupoutside');
             
             this.on('pointerover', () => {
-                if (s) this.data.tween('scale_view', s);
+                if (s) this.data.tween('scale', s);
                 this.state = 'over';
             });
             this.on('pointerout', () => {
-                if (s) this.data.tween('scale_view', 1);
+                if (s) this.data.tween('scale', 1);
                 this.state = 'default';
             });
             this.on('pointerdown', () => {
-                if (s) this.data.tween('scale_view', 1);
+                if (s) this.data.tween('scale', 1);
                 this.state = 'down';
             });
             this.on('pointerup', () => {
-                if (s) this.data.tween('scale_view', s);
+                if (s) this.data.tween('scale', s);
                 this.state = 'over';
             });
             this.on('pointerupoutside', () => {
-                if (s) this.data.tween('scale_view', 1);
+                if (s) this.data.tween('scale', 1);
                 this.state = 'default'
             });
         }
@@ -67,8 +69,8 @@ define(['game.data', 'pixi'], (data, PIXI) => {
     view.VLabel = class VLabel extends view.View {
         constructor (text) {
             super();
-            
             this.data.text = text || '';
+            
             this.view = new PIXI.Text(this.text, new PIXI.TextStyle({fontWeight : '100'}));
             this.addChild(this.view);
             
@@ -114,51 +116,22 @@ define(['game.data', 'pixi'], (data, PIXI) => {
         constructor () {super();}
         
         draw () {
-            this.beginFill(this.data.color_bg, this.data.alpha);
-            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha);
-            this.drawRoundedRect(- this.data.width / 2 * this.data.scale_view,
-                                 - this.data.height / 2 * this.data.scale_view,
-                                 this.data.width * this.data.scale_view,
-                                 this.data.height * this.data.scale_view,
+            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+            this.beginFill(this.data.color_bg, this.data.alpha_draw);
+            this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
+                                 - this.data.height / 2 * this.data.scale_draw,
+                                 this.data.width * this.data.scale_draw,
+                                 this.data.height * this.data.scale_draw,
                                  this.data.round);
             this.endFill();
         }
     };
     
-    
-    view.VPaneResource = class VPaneResource extends view.VPane {
-        constructor () {
-            super();
-            
-            let create_resource = (name, key, grid) => {
-                grid.name = key;
-                let icon = new view.VButton(name).style_icon_small();
-                let label = new view.VLabel('0').align_left();
-                label.view.style.fill = 'white';
-                label.view.style.fontSize *= 0.5;
-                label.update();
-                
-                let padding = (this.data.height - icon.data.height) / 2;
-                icon.data.x = grid.position.left + padding + icon.data.width / 2;
-                label.data.x = grid.position.left + padding * 1.5 + icon.data.width;
-                
-                this.addChild(icon);
-                this.addChild(label);
-            };
-            
-            create_resource('炭', 'C14',     this.data.grid[0]);
-            create_resource('钛', 'Ti',      this.data.grid[1]);
-            create_resource('钚', 'Pu238',   this.data.grid[2]);
-            create_resource('氦', 'He3',     this.data.grid[3]);
-        }
-    };
-    
-    
     view.VButton = class VButton extends view.VPane {
         constructor (text) {
             super();
-            
             this.data.text  = text || '';
+            
             this.label  = new view.VLabel();
             this.addChild(this.label);
             
@@ -169,7 +142,7 @@ define(['game.data', 'pixi'], (data, PIXI) => {
             });
             this.data.on_set('height', (v) => {
 //                this.height = v;
-                this.label.view.style.fontSize    = v * 2 / 3;
+                this.label.view.style.fontSize    = v * 3 / 5;
                 this.label.update();
             });
         }
@@ -200,6 +173,7 @@ define(['game.data', 'pixi'], (data, PIXI) => {
         }
 
         click (action) {
+            this.interactive = true;
             this.on('pointerup', action);
             return this;
         }
@@ -217,57 +191,113 @@ define(['game.data', 'pixi'], (data, PIXI) => {
                     break;
             }
             if (undefined != color_mask) {
-                this.beginFill(color_mask, 0.2);
                 this.lineStyle(0);
-                this.drawRoundedRect(- this.data.width / 2 * this.data.scale_view,
-                                     - this.data.height / 2 * this.data.scale_view,
-                                     this.data.width * this.data.scale_view,
-                                     this.data.height * this.data.scale_view,
+                this.beginFill(color_mask, 0.2);
+                this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
+                                     - this.data.height / 2 * this.data.scale_draw,
+                                     this.data.width * this.data.scale_draw,
+                                     this.data.height * this.data.scale_draw,
                                      this.data.round);
                 this.endFill();
             }
         }
     };
+
     
-    view.VStar = class VStar extends view.View {
+    view.VPaneResource = class VPaneResource extends view.VPane {
+        constructor () {
+            super();
+            
+            let create_resource = (name, key, grid) => {
+                grid.name = key;
+                let icon = new view.VButton(name).style_icon_small();
+                let label = new view.VLabel('0').align_left();
+                label.view.style.fill = 'white';
+                label.view.style.fontSize *= 0.5;
+                label.update();
+                
+                let padding = (this.data.height - icon.data.height) / 2;
+                icon.data.x = grid.position.left + padding + icon.data.width / 2;
+                label.data.x = grid.position.left + padding * 1.5 + icon.data.width;
+                
+                this.addChild(icon);
+                this.addChild(label);
+            };
+            
+            create_resource('炭', 'C14',     this.data.grid[0]);
+            create_resource('钛', 'Ti',      this.data.grid[1]);
+            create_resource('钚', 'Pu238',   this.data.grid[2]);
+        }
+    };
+    
+    
+    view.VPaneOperate = class VPaneOperate extends view.VPane {
+        constructor () {
+            super();
+            
+            this.addChild(new view.VButton('结束本轮').style_primary());
+        }
+    };
+    
+    
+    view.VStar = class VStar extends view.VPane {
         constructor (type) {
             super();
-            this.auto_interactive(1.15);
+            if (!type) throw new Error('empty star type');
             this.data.type = type;
             
-            this.data.on_set('thumb', (v) => {
-                if (v)  this.data.tween('scale', 0.12);
-                else    this.data.tween('scale', 1);
-            })
-            
-            this.click(() => this.data.thumb = !this.data.thumb);
+            if ('home' == type) this.auto_interactive();
+            else this.auto_interactive(1.2);
         }
 
         click (action) {
+            this.interactive = true;
             this.on('pointerup', action);
             return this;
         }
         
         draw () {
-            switch (this.state) {
-                case 'over':
-                case 'down':
-                    this.lineStyle(this.data.border, this.data.color_bd, 1);
-                    break;
-                default:
-                    this.lineStyle(0);
-                    break;
-            }
-            this.beginFill(this.data.color_bg, 1);
-            this.drawCircle(0, 0, this.data.radius * this.data.scale_view);
+            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+            this.beginFill(this.data.color_bg, this.data.alpha_draw);
+            this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
             this.endFill();
-            
-            switch (this.data.type) {
-                case 'home':
-                    break;
-            }
         }
     };
+    
+    view.VStarHome = class VStar extends view.VStar {
+        constructor () {
+            super('home');
+            
+            this.thumb = true;
+            
+            data.Data.on_set(this, 'thumb', (v) => {
+                if (v)  this.data.tween('scale', 0.12);
+                else    this.data.tween('scale', 1);
+            });
+            
+            this.click(() => this.thumb = !this.thumb);
+        }
+        
+        draw () {
+            super.draw();
+            
+            let color_mask = undefined;
+            switch (this.state) {
+                case 'over':
+                    color_mask = 0xffffff;
+                    break;
+                case 'down':
+                    color_mask = 0x000000;
+                    break;
+            }
+            if (undefined != color_mask) {
+                this.lineStyle(0);
+                this.beginFill(color_mask, 0.2);
+                this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+                this.endFill();
+            }
+        }
+    }
     
     
     return view;
