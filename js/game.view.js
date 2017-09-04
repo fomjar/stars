@@ -33,6 +33,47 @@ define(['game.data', 'pixi'], (data, PIXI) => {
         }
         
         draw () {}
+        
+        show (pa, tm, dn) {
+            pa = tm = dn = undefined;
+            for (let i in arguments) {
+                let arg = arguments[i];
+                if ('object'    === typeof arg) pa = arg;
+                if ('number'    === typeof arg) tm = arg;
+                if ('function'  === typeof arg) dn = arg;
+            }
+            if (!pa) pa = document.game.app.stage;
+            
+            this.data.alpha = 0;
+            pa.addChild(this);
+            this.data.tween('alpha', 1, tm, () => {if (dn) dn()});
+            
+            return this;
+        }
+        
+        hide (dn) {
+            this.data.tween('alpha', 0, () => {
+                this.parent.removeChild(this);
+                if (dn) dn();
+            });
+            
+            return this;
+        }
+        
+        layer_top () {return this.layer(0xffffffff);}
+        
+        layer_bot () {return this.layer(0);}
+        
+        layer (i) {
+            if (undefined == i) return this.parent.getChildIndex(this);
+            
+            if (!this.parent) throw new Error('layer operate failed, no parent');
+            if (i < 0) i = 0;
+            if (i >= this.parent.children.length) i = this.parent.children.length - 1;
+            
+            this.parent.setChildIndex(this, i);
+            return this;
+        }
 
         auto_interactive (s) {
             this.interactive    = true;
@@ -44,7 +85,10 @@ define(['game.data', 'pixi'], (data, PIXI) => {
             this.removeAllListeners('pointerupoutside');
             
             this.on('pointerover', () => {
-                if (s) this.data.tween('scale', s);
+                if (s) {
+                    this.layer_top();
+                    this.data.tween('scale', s);
+                }
                 this.state = 'over';
             });
             this.on('pointerout', () => {
@@ -56,7 +100,10 @@ define(['game.data', 'pixi'], (data, PIXI) => {
                 this.state = 'down';
             });
             this.on('pointerup', () => {
-                if (s) this.data.tween('scale', s);
+                if (s) {
+                    this.layer_top();
+                    this.data.tween('scale', s);
+                }
                 this.state = 'over';
             });
             this.on('pointerupoutside', () => {
@@ -202,6 +249,53 @@ define(['game.data', 'pixi'], (data, PIXI) => {
             }
         }
     };
+    
+    
+    view.VDialog = class VDialog extends view.VPane {
+        constructor () {
+            super();
+            
+            this.buttons = {};
+            
+            this.interactive = true;
+            this.on('pointerup', ()=>false);
+        }
+        
+        option (key, val, action) {
+            if (!key || !val) throw new Error('illegal arguments, required: key, val');
+            
+            let button = new view.VButton(val).style_primary();
+            if (action) button.click(action);
+            
+            this.data.option(key, val);
+            this.buttons[key] = button;
+            this.addChild(button);
+            
+            this.update();
+            
+            return this;
+        }
+        
+        update () {
+            let col = 3;
+            let total = 0;
+            for (let key in this.buttons) total++;
+            let row = Math.ceil(total / col);
+            let grid_width = this.data.width / col;
+            
+            let i = 0;
+            for (let key in this.buttons) {
+                let button = this.buttons[key];
+                button.data.width = grid_width;
+                button.data.x = - this.data.width / 2 + (i % 3 + 0.5) * grid_width;
+                button.data.y = this.data.height / 2 - (row - Math.floor(i / col) - 0.5) * button.data.height;
+                
+                i++;
+            }
+        }
+        
+        show () {super.show(500);}
+    }
 
     
     view.VPaneResource = class VPaneResource extends view.VPane {

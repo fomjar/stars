@@ -24,13 +24,9 @@ define(['game.tween'], (tween) => {
         static tween (ta, pr, to, tm, dn) {
             if (3 > arguments.length) throw new Error('illegal arguments count, at least 3');
             
-            switch (arguments.length) {
-                case 4:
-                    if ('function' == typeof tm) {
-                        dn = tm;
-                        tm = null;
-                    }
-                    break;
+            if ('function' == typeof tm) {
+                dn = tm;
+                tm = undefined;
             }
             if (!tm) tm = 160;
             
@@ -78,13 +74,9 @@ define(['game.tween'], (tween) => {
         static bind (ta, sr, pr, fn) {
             if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
             
-            switch (arguments.length) {
-                case 3:
-                    if ('function' == typeof pr) {
-                        fn = pr;
-                        pr = null;
-                    }
-                    break;
+            if ('function' == typeof pr) {
+                fn = pr;
+                pr = undefined;
             }
             if (pr) {
                 Data.on_set(sr, pr, (v) => {
@@ -115,9 +107,9 @@ define(['game.tween'], (tween) => {
     data.DPane = class DPane extends data.Data {
         constructor () {
             super();
-            this.alpha_draw = 0.4;
+            this.alpha_draw = 0.8;
             this.round  = 6;
-            this.border = 2;
+            this.border = 4;
             this.color_bg   = 0x999999;
             this.color_bd   = 0xcccccc;
         }
@@ -151,13 +143,30 @@ define(['game.tween'], (tween) => {
             this.height     = 24;
         }
     };
+    data.DDialog = class DDialog extends data.DPane {
+        constructor () {
+            super();
+            this.width  = document.game.screen.width / 3;
+            this.height = document.game.screen.height / 3;
+            this.x      = document.game.screen.width / 2;
+            this.y      = document.game.screen.height / 2;
+            this.options    = {};
+        }
+        
+        option (key, val) {
+            if (!key) throw new Error('empty key for option');
+            
+            if (val) return this.options[key] = val;
+            else return this.options[key];
+        }
+    };
     data.DPaneResource = class DPaneResource extends data.DPane {
         constructor () {
             super();
             this.width  = 256;
             this.height = 32;
-            this.x      = this.width / 2;
-            this.y      = this.height / 2;
+            this.x      = this.width / 2 + this.border / 2;
+            this.y      = this.height / 2 + this.border / 2;
             
             this.grid   = [];
             let n = 3;
@@ -180,8 +189,8 @@ define(['game.tween'], (tween) => {
             super();
             this.width  = 300;
             this.height = 120;
-            this.x      = this.width / 2;
-            this.y      = document.game.screen.height - this.height / 2;
+            this.x      = this.width / 2 + this.border / 2;
+            this.y      = document.game.screen.height - this.height / 2 - this.border / 2;
         }
     };
     data.DStar = class DStar extends data.DPane {

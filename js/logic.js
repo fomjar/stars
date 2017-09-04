@@ -10,6 +10,10 @@ define(['game', 'pixi'], (game, pixi) => {
         init_view();
     };
     
+    logic.next = () => {
+        
+    };
+    
     let init_app = () => {
         let screen = {width : window.innerWidth, height : window.innerHeight};
         
@@ -53,13 +57,28 @@ define(['game', 'pixi'], (game, pixi) => {
     }
     
     let init_view = () => {
-        let stage = game.app.stage;
-        stage.addChild(new game.VPaneResource());
-        stage.addChild(new game.VPaneOperate());
+        logic.view_pane_resource = new game.VPaneResource();
+        logic.view_pane_operate  = new game.VPaneOperate();
+        logic.view_pane_resource.show();
+        logic.view_pane_operate.show();
         
         var home = new game.VStarHome();
         home.data.bindi(game.asset.home);
-        stage.addChildAt(home, 0);
+        home.show();
+        home.layer_bot();
+        
+        home.click(() => {
+            new game.VDialog()
+                    .option('1', '确认', ()=>{})
+                    .option('2',  '取消', ()=>{})
+                    .option('3', '确认', ()=>{})
+                    .option('4',  '取消', ()=>{})
+                    .option('5', '确认', ()=>{})
+                    .option('6',  '取消', ()=>{})
+                    .option('7', '确认', ()=>{})
+                    .option('8',  '取消', ()=>{})
+                    .show();
+        });
     };
     
     return logic;
