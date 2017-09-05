@@ -6,7 +6,7 @@
 
 这是一款基于PIXI.js引擎的冒险、养成类游戏。玩家作为一个星系的领导者，带领自己的星系在浩瀚的宇宙中生存、发展、壮大。
 
-项目DEMO地址(不定期更新)：[http://www.fomjar.com/stars/index.html](http://www.fomjar.com/stars/index.html)
+不定期更新DEMO(代码未经过压缩，打开会有一小段时间的空白)：[http://www.fomjar.com/stars/index.html](http://www.fomjar.com/stars/index.html)
 
 ### 模块介绍
 
