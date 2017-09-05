@@ -66,19 +66,6 @@ define(['game', 'pixi'], (game, pixi) => {
         home.data.bindi(game.asset.home);
         home.show();
         home.layer_bot();
-        
-        home.click(() => {
-            new game.VDialog()
-                    .option('1', '确认', ()=>{})
-                    .option('2',  '取消', ()=>{})
-                    .option('3', '确认', ()=>{})
-                    .option('4',  '取消', ()=>{})
-                    .option('5', '确认', ()=>{})
-                    .option('6',  '取消', ()=>{})
-                    .option('7', '确认', ()=>{})
-                    .option('8',  '取消', ()=>{})
-                    .show();
-        });
     };
     
     return logic;

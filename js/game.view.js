@@ -287,7 +287,7 @@ define(['game.data', 'pixi'], (data, PIXI) => {
             for (let key in this.buttons) {
                 let button = this.buttons[key];
                 button.data.width = grid_width;
-                button.data.x = - this.data.width / 2 + (i % 3 + 0.5) * grid_width;
+                button.data.x = - this.data.width / 2 + (i % col + 0.5) * grid_width;
                 button.data.y = this.data.height / 2 - (row - Math.floor(i / col) - 0.5) * button.data.height;
                 
                 i++;
