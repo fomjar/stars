@@ -10,12 +10,12 @@
 
 这是一款基于PIXI.js引擎的冒险、养成类游戏。玩家作为一个星系的领导者，带领自己的星系在浩瀚的宇宙中生存、发展、壮大。
 
-不定期更新DEMO(代码未经过压缩，打开会有一小段时间的空白)：[http://www.fomjar.com/stars/index.html](http://www.fomjar.com/stars/index.html)
+不定期更新DEMO：[http://www.fomjar.com/stars/index.html](http://www.fomjar.com/stars/index.html)
 
 ### 模块介绍
 
-- **game.data.js**  数据模型定义，游戏中的每个对象都有对应的数据模型，定义了如：坐标、尺寸、等级、技能等数据
-- **game.view.js**  视图组件定义，包括：按钮、弹框、图标、星球等。每个视图都包含了自己的数据模型
-- **game.tween.js** 缓动动画函数定义，在data中使用
-- **game.js**       所有定义的合并对象，存储在document对象中，便于全局访问
-- **logic.js**      逻辑调用
+- **data.js**  	数据模型定义，游戏中的每个对象都有对应的数据模型，定义了如：坐标、尺寸、等级、技能等数据
+- **view.js**  	视图组件定义，包括：按钮、弹框、图标、星球等。每个视图都包含了自己的数据模型，并应用了字段绑定
+- **tween.js** 	缓动动画函数定义，在data中使用
+- **global.js** 全局引用，定义了需要全局访问的常量，如：屏幕大小、主app引用、一些单例视图等
+- **app.js**    程序入口，进行程序等初始化和运作逻辑定义
