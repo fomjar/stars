@@ -42045,10 +42045,9 @@ var Data = function () {
             var time = 0;
             var begin = new Date().getTime();
 
-            var app = g.app;
             if (!ta._tweener) ta._tweener = {};
             if (ta._tweener[pr]) {
-                app.ticker.remove(ta._tweener[pr]);
+                g.app.ticker.remove(ta._tweener[pr]);
                 delete ta._tweener[pr];
             }
             ta._tweener[pr] = function (delta) {
@@ -42056,12 +42055,12 @@ var Data = function () {
                 ta[pr] = fn(time, from, to - from, tm);
                 if (time >= tm) {
                     ta[pr] = to;
-                    app.ticker.remove(ta._tweener[pr]);
+                    g.app.ticker.remove(ta._tweener[pr]);
                     delete ta._tweener[pr];
                     if (dn) dn();
                 }
             };
-            app.ticker.add(ta._tweener[pr]);
+            g.app.ticker.add(ta._tweener[pr]);
         }
     }, {
         key: 'on_get',

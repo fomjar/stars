@@ -2,7 +2,8 @@
 
 let g       = require('./global');
 let tween   = require('./tween.js');
-    
+
+
 class Data {
     constructor () {
         this.x      = 0;
@@ -34,10 +35,9 @@ class Data {
         let time    = 0;
         let begin   = new Date().getTime();
 
-        let app = g.app;
         if (!ta._tweener) ta._tweener = {};
         if (ta._tweener[pr]) {
-            app.ticker.remove(ta._tweener[pr]);
+            g.app.ticker.remove(ta._tweener[pr]);
             delete ta._tweener[pr];
         }
         ta._tweener[pr] = delta => {
@@ -45,12 +45,12 @@ class Data {
             ta[pr] = fn(time, from, to - from, tm);
             if (time >= tm) {
                 ta[pr] = to;
-                app.ticker.remove(ta._tweener[pr]);
+                g.app.ticker.remove(ta._tweener[pr]);
                 delete ta._tweener[pr];
                 if (dn) dn();
             }
         };
-        app.ticker.add(ta._tweener[pr]);
+        g.app.ticker.add(ta._tweener[pr]);
     }
     static on_get (ta, pr, fn) {
         if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
@@ -205,7 +205,7 @@ class DStar extends DPane {
         this.on_set('radius', v => {
             this.width  = v * 2;
             this.height = v * 2;
-        })
+        });
         this.on_set('level', v => {
             let screen = g.screen;
             this.radius = screen.height / 5 + v * screen.height / 80;
