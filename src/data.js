@@ -1,9 +1,9 @@
 
-import tween from './game.tween.js'
-    
-let data = {};
 
-data.Data = class Data {
+let g       = require('./global');
+let tween   = require('./tween.js');
+    
+class Data {
     constructor () {
         this.x      = 0;
         this.y      = 0;
@@ -34,7 +34,7 @@ data.Data = class Data {
         let time    = 0;
         let begin   = new Date().getTime();
 
-        let app = document.game.app;
+        let app = g.app;
         if (!ta._tweener) ta._tweener = {};
         if (ta._tweener[pr]) {
             app.ticker.remove(ta._tweener[pr]);
@@ -91,8 +91,8 @@ data.Data = class Data {
             }
         }
     }
-};
-data.DLabel = class DLabel extends data.Data {
+}
+class DLabel extends Data {
     constructor () {
         super();
         
@@ -102,8 +102,8 @@ data.DLabel = class DLabel extends data.Data {
     align_left   () {this.align = 'left';}
     align_center () {this.align = 'center';}
     align_right  () {this.align = 'right';}
-};
-data.DPane = class DPane extends data.Data {
+}
+class DPane extends Data {
     constructor () {
         super();
         this.alpha_draw = 0.8;
@@ -112,8 +112,8 @@ data.DPane = class DPane extends data.Data {
         this.color_bg   = 0x999999;
         this.color_bd   = 0xcccccc;
     }
-};
-data.DButton = class DButton extends data.DPane {
+}
+class DButton extends DPane {
     constructor () {
         super();
         this.alpha_draw = 1;
@@ -141,14 +141,14 @@ data.DButton = class DButton extends data.DPane {
         this.width      = 72;
         this.height     = 24;
     }
-};
-data.DDialog = class DDialog extends data.DPane {
+}
+class DDialog extends DPane {
     constructor () {
         super();
-        this.width  = document.game.screen.width / 3;
-        this.height = document.game.screen.height / 3;
-        this.x      = document.game.screen.width / 2;
-        this.y      = document.game.screen.height / 2;
+        this.width  = g.screen.width / 3;
+        this.height = g.screen.height / 3;
+        this.x      = g.screen.width / 2;
+        this.y      = g.screen.height / 2;
         this.options    = {};
     }
     
@@ -158,8 +158,8 @@ data.DDialog = class DDialog extends data.DPane {
         if (val) return this.options[key] = val;
         else return this.options[key];
     }
-};
-data.DPaneResource = class DPaneResource extends data.DPane {
+}
+class DPaneResource extends DPane {
     constructor () {
         super();
         this.width  = 256;
@@ -182,17 +182,17 @@ data.DPaneResource = class DPaneResource extends data.DPane {
             };
         }
     }
-};
-data.DPaneOperate = class DPaneOperate extends data.DPane {
+}
+class DPaneOperate extends DPane {
     constructor () {
         super();
         this.width  = 300;
         this.height = 120;
         this.x      = this.width / 2 + this.border / 2;
-        this.y      = document.game.screen.height - this.height / 2 - this.border / 2;
+        this.y      = g.screen.height - this.height / 2 - this.border / 2;
     }
-};
-data.DStar = class DStar extends data.DPane {
+}
+class DStar extends DPane {
     constructor () {
         super();
         this.alpha_draw = 1;
@@ -207,7 +207,7 @@ data.DStar = class DStar extends data.DPane {
             this.height = v * 2;
         })
         this.on_set('level', v => {
-            let screen = document.game.screen;
+            let screen = g.screen;
             this.radius = screen.height / 5 + v * screen.height / 80;
             if ('home' == this.type) this.radius *= 1.2;
         });
@@ -222,7 +222,14 @@ data.DStar = class DStar extends data.DPane {
                 break;
         }
     }
-};
+}
 
-export default data
+module.exports.Data     = Data;
+module.exports.DLabel   = DLabel;
+module.exports.DPane    = DPane;
+module.exports.DButton  = DButton;
+module.exports.DDialog  = DDialog;
+module.exports.DPaneResource    = DPaneResource;
+module.exports.DPaneOperate     = DPaneOperate;
+module.exports.DStar    = DStar;
 

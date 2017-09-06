@@ -1,10 +1,9 @@
 
-import data from './game.data.js'
-let PIXI = require('pixi.js');
-    
-let view = data;
+let pixi = require('pixi.js');
+let g    = require('./global');
+let data = require('./data');
 
-view.View = class View extends PIXI.Graphics {
+class View extends pixi.Graphics {
     constructor () {
         super();
         
@@ -42,7 +41,7 @@ view.View = class View extends PIXI.Graphics {
             if ('number'    === typeof arg) tm = arg;
             if ('function'  === typeof arg) dn = arg;
         }
-        if (!pa) pa = document.game.app.stage;
+        if (!pa) pa = g.app.stage;
         
         this.data.alpha = 0;
         pa.addChild(this);
@@ -111,14 +110,14 @@ view.View = class View extends PIXI.Graphics {
             this.state = 'default'
         });
     }
-};
+}
 
-view.VLabel = class VLabel extends view.View {
+class VLabel extends View {
     constructor (text) {
         super();
         this.data.text = text || '';
         
-        this.view = new PIXI.Text(this.text, new PIXI.TextStyle({fontWeight : '100'}));
+        this.view = new pixi.Text(this.text, new pixi.TextStyle({fontWeight : '100'}));
         this.addChild(this.view);
         
         this.data.on_set('text', v => {
@@ -159,7 +158,7 @@ view.VLabel = class VLabel extends view.View {
     }
 }
 
-view.VPane = class VPane extends view.View {
+class VPane extends View {
     constructor () {super();}
     
     draw () {
@@ -172,14 +171,14 @@ view.VPane = class VPane extends view.View {
                              this.data.round);
         this.endFill();
     }
-};
+}
 
-view.VButton = class VButton extends view.VPane {
+class VButton extends VPane {
     constructor (text) {
         super();
         this.data.text  = text || '';
         
-        this.label  = new view.VLabel();
+        this.label  = new VLabel();
         this.addChild(this.label);
         
         this.data.bindo(this.label.data, 'text');
@@ -248,10 +247,10 @@ view.VButton = class VButton extends view.VPane {
             this.endFill();
         }
     }
-};
+}
 
 
-view.VDialog = class VDialog extends view.VPane {
+class VDialog extends VPane {
     constructor () {
         super();
         
@@ -264,7 +263,7 @@ view.VDialog = class VDialog extends view.VPane {
     option (key, val, action) {
         if (!key || !val) throw new Error('illegal arguments, required: key, val');
         
-        let button = new view.VButton(val).style_primary();
+        let button = new VButton(val).style_primary();
         if (action) button.click(action);
         
         this.data.option(key, val);
@@ -298,14 +297,14 @@ view.VDialog = class VDialog extends view.VPane {
 }
 
 
-view.VPaneResource = class VPaneResource extends view.VPane {
+class VPaneResource extends VPane {
     constructor () {
         super();
         
         let create_resource = (name, key, grid) => {
             grid.name = key;
-            let icon = new view.VButton(name).style_icon_small();
-            let label = new view.VLabel('0').align_left();
+            let icon = new VButton(name).style_icon_small();
+            let label = new VLabel('0').align_left();
             label.view.style.fill = 'white';
             label.view.style.fontSize *= 0.5;
             label.update();
@@ -322,19 +321,19 @@ view.VPaneResource = class VPaneResource extends view.VPane {
         create_resource('钛', 'Ti',      this.data.grid[1]);
         create_resource('钚', 'Pu238',   this.data.grid[2]);
     }
-};
+}
 
 
-view.VPaneOperate = class VPaneOperate extends view.VPane {
+class VPaneOperate extends VPane {
     constructor () {
         super();
         
-        this.addChild(new view.VButton('结束本轮').style_primary());
+        this.addChild(new VButton('结束本轮').style_primary());
     }
-};
+}
 
 
-view.VStar = class VStar extends view.VPane {
+class VStar extends VPane {
     constructor (type) {
         super();
         if (!type) throw new Error('empty star type');
@@ -356,9 +355,9 @@ view.VStar = class VStar extends view.VPane {
         this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
         this.endFill();
     }
-};
+}
 
-view.VStarHome = class VStar extends view.VStar {
+class VStarHome extends VStar {
     constructor () {
         super('home');
         
@@ -393,5 +392,13 @@ view.VStarHome = class VStar extends view.VStar {
     }
 }
 
-export default view
+module.exports.View     = View;
+module.exports.VLabel   = VLabel;
+module.exports.VPane    = VPane;
+module.exports.VButton  = VButton;
+module.exports.VDialog  = VDialog;
+module.exports.VPaneResource    = VPaneResource;
+module.exports.VPaneOperate     = VPaneOperate;
+module.exports.VStar        = VStar;
+module.exports.VStarHome    = VStarHome;
 

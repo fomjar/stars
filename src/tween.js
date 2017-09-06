@@ -8,7 +8,7 @@
  * you can visit 'http://easings.net/zh-cn' to get effect
  * demo: http://www.zhangxinxu.com/study/201612/how-to-use-tween-js.html
  */
-let tween = {
+module.exports = {
     Linear: function (t, b, c, d) { return c * t / d + b; },
     Quad: {
         easeIn: function (t, b, c, d) {
@@ -176,6 +176,4 @@ let tween = {
         }
     }
 };
-
-export default tween;
 
