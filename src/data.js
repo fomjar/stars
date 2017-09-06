@@ -3,7 +3,9 @@
 let g       = require('./global');
 let tween   = require('./tween.js');
 
-
+/**
+ * 数据模型定义
+ */
 class Data {
     constructor () {
         this.x      = 0;
@@ -16,11 +18,69 @@ class Data {
         this.alpha      = 1;
         this.alpha_draw = 1;
     }
-    tween   (pr, to, tm, dn)    {Data.tween (this, pr, to, tm, dn);}
-    on_get  (pr, fn)            {Data.on_get(this, pr, fn);}
-    on_set  (pr, fs, fg)        {Data.on_set(this, pr, fs, fg);}
-    bindi   (sr, pr, fn)        {Data.bind  (this, sr, pr, fn);}
-    bindo   (ta, pr, fn)        {Data.bind  (ta, this, pr, fn);}
+    /**
+     * 缓动动画。
+     * @param  {String}   pr 目标属性
+     * @param  {Number}   to 目标值
+     * @param  {Number}   tm 总变化时间（MS），默认160
+     * @param  {Function} dn 动画完成时的回调
+     * @return {Data}     当前对象
+     */
+    tween (pr, to, tm, dn) {
+        Data.tween(this, pr, to, tm, dn);
+        return this;
+    }
+    /**
+     * 设置属性get回调。
+     * @param  {String}   pr 目标属性
+     * @param  {Function} fn get时的回调
+     * @return {Data}     当前对象
+     */
+    on_get (pr, fn) {
+        Data.on_get(this, pr, fn);
+        return this;
+    }
+    /**
+     * 设置属性set回调，同时也会设置get回调。
+     * @param  {String}   pr 目标属性
+     * @param  {Function} fs set时的回调
+     * @param  {Function} fg get时的回调
+     * @return {Data}     当前对象
+     */
+    on_set (pr, fs, fg) {
+        Data.on_set(this, pr, fs, fg);
+        return this;
+    }
+    /**
+     * 属性绑入。被绑定的属性会自动同步。
+     * @param  {Object}   sr 来源对象
+     * @param  {String}   pr 要绑定的属性
+     * @param  {Function} fn 同步时的回调
+     * @return {Data}     当前对象
+     */
+    bindi (sr, pr, fn) {
+        Data.bind(this, sr, pr, fn);
+        return this;
+    }
+    /**
+     * 属性绑出。被绑定的属性会自动同步。
+     * @param  {Object}   ta 目标对象
+     * @param  {String}   pr 要绑定的属性
+     * @param  {Function} fn 同步时的回调
+     * @return {Data}     当前对象
+     */
+    bindo (ta, pr, fn) {
+        Data.bind(ta, this, pr, fn);
+        return this;
+    }
+    /**
+     * 缓动动画。静态方法可以指定目标对象。
+     * @param  {Object} ta 目标对象
+     * @param  {String} pr 目标属性
+     * @param  {Number} to 目标值
+     * @param  {Number} tm 总变化时间（MS），默认160
+     * @param  {Function} dn 动画完成时的回调
+     */
     static tween (ta, pr, to, tm, dn) {
         if (3 > arguments.length) throw new Error('illegal arguments count, at least 3');
         
@@ -52,24 +112,55 @@ class Data {
         };
         g.app.ticker.add(ta._tweener[pr]);
     }
+    /**
+     * 设置属性get回调。静态方法可以指定目标对象。
+     * @param  {Object}   ta 目标对象
+     * @param  {String}   pr 目标属性
+     * @param  {Function} fn get时的回调
+     */
     static on_get (ta, pr, fn) {
         if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
 
         ta[`_${pr}`] = ta[pr];
         if (!fn) fn = () => ta[`_${pr}`];
-        ta.__defineGetter__(pr, () => fn());
+
+        if (Object.defineProperty) Object.defineProperty(ta, pr, {configurable : true, get : fn});
+        else if (ta.__defineGetter__) ta.__defineGetter__(pr, fn);
+        else throw new Error(`define getter failed for property: ${pr}`);
     }
+    /**
+     * 设置属性set回调，同时也会设置get回调。静态方法可以指定目标对象。
+     * @param  {Object}   ta 目标对象
+     * @param  {String}   pr 目标属性
+     * @param  {Function} fs set时的回调
+     * @param  {Function} fg get时的回调
+     */
     static on_set (ta, pr, fs, fg) {
         if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
 
         Data.on_get(ta, pr, fg);
         
-        ta.__defineSetter__(pr, v => {
-            ta[`_${pr}`] = v;
-            if (fs) fs(v);
-        });
+        if (Object.defineProperty)
+            Object.defineProperty(ta, pr, {configurable : true, set : v => {
+                ta[`_${pr}`] = v;
+                if (fs) fs(v);
+            }});
+        else if (ta.__defineSetter__)
+            ta.__defineSetter__(pr, v => {
+                ta[`_${pr}`] = v;
+                if (fs) fs(v);
+            });
+        else throw new Error(`define setter failed for property: ${pr}`);
+
         ta[pr] = ta[`_${pr}`];
     }
+    /**
+     * 属性绑出。被绑定的属性会自动同步。
+     * @param  {Object}   ta 目标对象
+     * @param  {Object}   sr 来源对象
+     * @param  {String}   pr 要绑定的属性
+     * @param  {Function} fn 同步时的回调
+     */
     static bind (ta, sr, pr, fn) {
         if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
         

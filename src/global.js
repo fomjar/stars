@@ -2,10 +2,10 @@
 let pixi = require('pixi.js');
 
 let g = {
-    debug   : false,
+    debug   : true,
     screen  : {
-        width   : window.innerWidth,
-        height  : window.innerHeight
+        width   : window.screen.width,
+        height  : window.screen.height
     },
     app     : new pixi.Application(screen.width, screen.height, {
         backgroundColor : 0x000000,

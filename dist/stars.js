@@ -11621,10 +11621,10 @@ function findTextStyle(item, queue) {
 var pixi = __webpack_require__(20);
 
 var g = {
-    debug: false,
+    debug: true,
     screen: {
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: window.screen.width,
+        height: window.screen.height
     },
     app: new pixi.Application(screen.width, screen.height, {
         backgroundColor: 0x000000,
@@ -20598,12 +20598,12 @@ var init_app = function init_app() {
         if (view.draw) view.draw();
 
         if (g.debug) {
-            if (!view.beginFill) return;
-
-            view.beginFill(0, 0);
-            view.lineStyle(1, 0xffffff, 1);
-            view.drawRect(-view.data.width / 2, -view.data.height / 2, view.data.width, view.data.height);
-            view.endFill();
+            if (view.beginFill) {
+                view.beginFill(0, 0);
+                view.lineStyle(1, 0xffffff, 1);
+                view.drawRect(-view.data.width / 2, -view.data.height / 2, view.data.width, view.data.height);
+                view.endFill();
+            }
         }
 
         if (view.children) {
@@ -41989,6 +41989,10 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var g = __webpack_require__(38);
 var _tween = __webpack_require__(194);
 
+/**
+ * 数据模型定义
+ */
+
 var Data = function () {
     function Data() {
         _classCallCheck(this, Data);
@@ -42003,32 +42007,86 @@ var Data = function () {
         this.alpha = 1;
         this.alpha_draw = 1;
     }
+    /**
+     * 缓动动画。
+     * @param  {String}   pr 目标属性
+     * @param  {Number}   to 目标值
+     * @param  {Number}   tm 总变化时间（MS），默认160
+     * @param  {Function} dn 动画完成时的回调
+     * @return {Data}     当前对象
+     */
+
 
     _createClass(Data, [{
         key: 'tween',
         value: function tween(pr, to, tm, dn) {
             Data.tween(this, pr, to, tm, dn);
+            return this;
         }
+        /**
+         * 设置属性get回调。
+         * @param  {String}   pr 目标属性
+         * @param  {Function} fn get时的回调
+         * @return {Data}     当前对象
+         */
+
     }, {
         key: 'on_get',
         value: function on_get(pr, fn) {
             Data.on_get(this, pr, fn);
+            return this;
         }
+        /**
+         * 设置属性set回调，同时也会设置get回调。
+         * @param  {String}   pr 目标属性
+         * @param  {Function} fs set时的回调
+         * @param  {Function} fg get时的回调
+         * @return {Data}     当前对象
+         */
+
     }, {
         key: 'on_set',
         value: function on_set(pr, fs, fg) {
             Data.on_set(this, pr, fs, fg);
+            return this;
         }
+        /**
+         * 属性绑入。被绑定的属性会自动同步。
+         * @param  {Object}   sr 来源对象
+         * @param  {String}   pr 要绑定的属性
+         * @param  {Function} fn 同步时的回调
+         * @return {Data}     当前对象
+         */
+
     }, {
         key: 'bindi',
         value: function bindi(sr, pr, fn) {
             Data.bind(this, sr, pr, fn);
+            return this;
         }
+        /**
+         * 属性绑出。被绑定的属性会自动同步。
+         * @param  {Object}   ta 目标对象
+         * @param  {String}   pr 要绑定的属性
+         * @param  {Function} fn 同步时的回调
+         * @return {Data}     当前对象
+         */
+
     }, {
         key: 'bindo',
         value: function bindo(ta, pr, fn) {
             Data.bind(ta, this, pr, fn);
+            return this;
         }
+        /**
+         * 缓动动画。静态方法可以指定目标对象。
+         * @param  {Object} ta 目标对象
+         * @param  {String} pr 目标属性
+         * @param  {Number} to 目标值
+         * @param  {Number} tm 总变化时间（MS），默认160
+         * @param  {Function} dn 动画完成时的回调
+         */
+
     }], [{
         key: 'tween',
         value: function tween(ta, pr, to, tm, dn) {
@@ -42062,6 +42120,13 @@ var Data = function () {
             };
             g.app.ticker.add(ta._tweener[pr]);
         }
+        /**
+         * 设置属性get回调。静态方法可以指定目标对象。
+         * @param  {Object}   ta 目标对象
+         * @param  {String}   pr 目标属性
+         * @param  {Function} fn get时的回调
+         */
+
     }, {
         key: 'on_get',
         value: function on_get(ta, pr, fn) {
@@ -42071,10 +42136,17 @@ var Data = function () {
             if (!fn) fn = function fn() {
                 return ta['_' + pr];
             };
-            ta.__defineGetter__(pr, function () {
-                return fn();
-            });
+
+            if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, get: fn });else if (ta.__defineGetter__) ta.__defineGetter__(pr, fn);else throw new Error('define getter failed for property: ' + pr);
         }
+        /**
+         * 设置属性set回调，同时也会设置get回调。静态方法可以指定目标对象。
+         * @param  {Object}   ta 目标对象
+         * @param  {String}   pr 目标属性
+         * @param  {Function} fs set时的回调
+         * @param  {Function} fg get时的回调
+         */
+
     }, {
         key: 'on_set',
         value: function on_set(ta, pr, fs, fg) {
@@ -42082,12 +42154,24 @@ var Data = function () {
 
             Data.on_get(ta, pr, fg);
 
-            ta.__defineSetter__(pr, function (v) {
+            if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, set: function set(v) {
+                    ta['_' + pr] = v;
+                    if (fs) fs(v);
+                } });else if (ta.__defineSetter__) ta.__defineSetter__(pr, function (v) {
                 ta['_' + pr] = v;
                 if (fs) fs(v);
-            });
+            });else throw new Error('define setter failed for property: ' + pr);
+
             ta[pr] = ta['_' + pr];
         }
+        /**
+         * 属性绑出。被绑定的属性会自动同步。
+         * @param  {Object}   ta 目标对象
+         * @param  {Object}   sr 来源对象
+         * @param  {String}   pr 要绑定的属性
+         * @param  {Function} fn 同步时的回调
+         */
+
     }, {
         key: 'bind',
         value: function bind(ta, sr, pr, fn) {

@@ -12,12 +12,12 @@ let init_app = () => {
         if (view.draw)  view.draw();
 
         if (g.debug) {
-            if (!view.beginFill) return;
-
-            view.beginFill(0, 0);
-            view.lineStyle(1, 0xffffff, 1);
-            view.drawRect(- view.data.width / 2, - view.data.height / 2, view.data.width, view.data.height);
-            view.endFill();
+            if (view.beginFill) {
+                view.beginFill(0, 0);
+                view.lineStyle(1, 0xffffff, 1);
+                view.drawRect(- view.data.width / 2, - view.data.height / 2, view.data.width, view.data.height);
+                view.endFill();
+            }
         }
 
         if (view.children) {
