@@ -9,14 +9,14 @@
             super();
             
             let find_data = proto => {
-                let name = `D${proto.constructor.name.substring(1)}`;
-                if (data[name]) this.data = new data[name]();
+                if (Object.is(proto, data.Data.prototype)) this.data = new data.Data();
                 else {
-                    if (proto.__proto__) find_data(proto.__proto__);
-                    else this.data = new data.Data();
+                    let name = `D${proto.constructor.name.slice(1)}`;
+                    if (data[name]) this.data = new data[name]();
+                    else find_data(Object.getPrototypeOf(proto));
                 }
             };
-            find_data(this.__proto__);
+            find_data(Object.getPrototypeOf(this));
 
             this.state  = 'default';
             
@@ -280,12 +280,12 @@
         update () {
             let height = 48;
             let keys = Object.keys(this.buttons);
-            let grids = data.Data.grid(
+            let grids = data.grid(
                 this.data.height / 2 - height,
                 - this.data.width / 2,
                 this.data.height / 2,
                 this.data.width / 2,
-                4, Math.ceil(this.buttons.length() / 4)
+                4, Math.ceil(keys.length / 4)
             );
             for (let i = 0; i < grids.length; i++) {
                 let grid = grids[i];
@@ -366,7 +366,7 @@
             
             this.thumb = true;
             
-            data.Data.on_set(this, 'thumb', v => {
+            data.on_set(this, 'thumb', v => {
                 if (v)  this.data.tween('scale', 0.12);
                 else    this.data.tween('scale', 1);
             });
@@ -395,15 +395,17 @@
         }
     }
 
-    module.exports.View     = View;
-    module.exports.VLabel   = VLabel;
-    module.exports.VPane    = VPane;
-    module.exports.VButton  = VButton;
-    module.exports.VDialog  = VDialog;
-    module.exports.VPaneResource    = VPaneResource;
-    module.exports.VPaneOperate     = VPaneOperate;
-    module.exports.VStar        = VStar;
-    module.exports.VStarHome    = VStarHome;
+    module.exports = {
+        View,
+        VLabel,
+        VPane,
+        VButton,
+        VDialog,
+        VPaneResource,
+        VPaneOperate,
+        VStar,
+        VStarHome,
+    };
 
 }
 

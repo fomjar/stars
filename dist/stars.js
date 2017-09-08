@@ -41501,12 +41501,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             var _this = _possibleConstructorReturn(this, (View.__proto__ || Object.getPrototypeOf(View)).call(this));
 
             var find_data = function find_data(proto) {
-                var name = 'D' + proto.constructor.name.substring(1);
-                if (data[name]) _this.data = new data[name]();else {
-                    if (proto.__proto__) find_data(proto.__proto__);else _this.data = new data.Data();
+                if (Object.is(proto, data.Data.prototype)) _this.data = new data.Data();else {
+                    var name = 'D' + proto.constructor.name.slice(1);
+                    if (data[name]) _this.data = new data[name]();else find_data(Object.getPrototypeOf(proto));
                 }
             };
-            find_data(_this.__proto__);
+            find_data(Object.getPrototypeOf(_this));
 
             _this.state = 'default';
 
@@ -41861,7 +41861,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function update() {
                 var height = 48;
                 var keys = Object.keys(this.buttons);
-                var grids = data.Data.grid(this.data.height / 2 - height, -this.data.width / 2, this.data.height / 2, this.data.width / 2, 4, Math.ceil(this.buttons.length() / 4));
+                var grids = data.grid(this.data.height / 2 - height, -this.data.width / 2, this.data.height / 2, this.data.width / 2, 4, Math.ceil(keys.length / 4));
                 for (var i = 0; i < grids.length; i++) {
                     var grid = grids[i];
                     var button = this.buttons[keys[i]];
@@ -41973,7 +41973,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
             _this11.thumb = true;
 
-            data.Data.on_set(_this11, 'thumb', function (v) {
+            data.on_set(_this11, 'thumb', function (v) {
                 if (v) _this11.data.tween('scale', 0.12);else _this11.data.tween('scale', 1);
             });
 
@@ -42009,15 +42009,17 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         return VStarHome;
     }(VStar);
 
-    module.exports.View = View;
-    module.exports.VLabel = VLabel;
-    module.exports.VPane = VPane;
-    module.exports.VButton = VButton;
-    module.exports.VDialog = VDialog;
-    module.exports.VPaneResource = VPaneResource;
-    module.exports.VPaneOperate = VPaneOperate;
-    module.exports.VStar = VStar;
-    module.exports.VStarHome = VStarHome;
+    module.exports = {
+        View: View,
+        VLabel: VLabel,
+        VPane: VPane,
+        VButton: VButton,
+        VDialog: VDialog,
+        VPaneResource: VPaneResource,
+        VPaneOperate: VPaneOperate,
+        VStar: VStar,
+        VStarHome: VStarHome
+    };
 }
 
 /***/ }),
@@ -42027,11 +42029,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 "use strict";
 
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
@@ -42039,37 +42041,199 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 {
 
     var g = __webpack_require__(38);
-    var _tween = __webpack_require__(194);
+    var t = __webpack_require__(194);
 
     /**
-     * @return {Number} 对象键值对数量
+     * @return {Object} 对象迭代器
      */
-    Object.prototype.length = function () {
-        return Object.keys(this).length;
+    Object.iterator = function (o) {
+        if (!o) throw new Error('illegal arguments, object must be offered');
+
+        return _defineProperty({
+            object: o,
+            index: 0,
+            keys: Object.keys(o)
+        }, Symbol.iterator, function () {
+            var _this = this;
+
+            return { next: function next() {
+                    var result = { done: Object.is(_this.keys[_this.index], undefined) };
+                    if (!result.done) result.value = [_this.keys[_this.index], o[_this.keys[_this.index]]];
+                    _this.index++;
+                    return result;
+                } };
+        });
     };
 
     /**
-     * @return {Object} 对象的默认迭代器
+     * 缓动动画。可以指定目标对象。
+     * @param  {Object} ta 目标对象
+     * @param  {String} pr 目标属性
+     * @param  {Number} to 目标值
+     * @param  {Number} tm 总变化时间（MS），默认160
+     * @param  {Function} dn 动画完成时的回调
      */
-    Object.prototype[Symbol.iterator] = function () {
+    var tween = function tween(ta, pr, to, tm, dn) {
+        if (3 > arguments.length) throw new Error('illegal arguments count, at least 3');
 
-        var self = this;
+        if (Object.is(typeof tm === 'undefined' ? 'undefined' : _typeof(tm), 'function')) {
+            dn = tm;
+            tm = undefined;
+        }
+        if (!tm) tm = 160;
 
-        var iterator = {
-            i: 0,
-            keys: Object.keys(self),
-            next: function next() {
-                var result = { done: Object.is(this.keys[this.i], undefined) };
-                if (!result.done) result.value = [this.keys[this.i], self[this.keys[this.i]]];
-                this.i++;
-                return result;
+        var fn = t.Circ.easeOut;
+        var from = ta[pr];
+        var time = 0;
+        var begin = new Date().getTime();
+
+        if (!ta._tweener) ta._tweener = {};
+        if (ta._tweener[pr]) {
+            g.app.ticker.remove(ta._tweener[pr]);
+            delete ta._tweener[pr];
+        }
+        ta._tweener[pr] = function (delta) {
+            time = new Date().getTime() - begin;
+            ta[pr] = fn(time, from, to - from, tm);
+            if (time >= tm) {
+                ta[pr] = to;
+                g.app.ticker.remove(ta._tweener[pr]);
+                delete ta._tweener[pr];
+                if (dn) dn();
             }
         };
-        return iterator;
+        g.app.ticker.add(ta._tweener[pr]);
     };
+    /**
+     * 设置属性get回调。可以指定目标对象。
+     * @param  {Object}   ta 目标对象
+     * @param  {String}   pr 目标属性
+     * @param  {Function} fn get时的回调
+     */
+    var on_get = function on_get(ta, pr, fn) {
+        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+
+        ta['_' + pr] = ta[pr];
+        if (!fn) fn = function fn() {
+            return ta['_' + pr];
+        };
+
+        if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, get: fn });else if (ta.__defineGetter__) ta.__defineGetter__(pr, fn);else throw new Error('define getter failed for property: ' + pr);
+    };
+    /**
+     * 设置属性set回调，同时也会设置get回调。可以指定目标对象。
+     * @param  {Object}   ta 目标对象
+     * @param  {String}   pr 目标属性
+     * @param  {Function} fs set时的回调
+     * @param  {Function} fg get时的回调
+     */
+    var on_set = function on_set(ta, pr, fs, fg) {
+        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+
+        on_get(ta, pr, fg);
+
+        if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, set: function set(v) {
+                ta['_' + pr] = v;
+                if (fs) fs(v);
+            } });else if (ta.__defineSetter__) ta.__defineSetter__(pr, function (v) {
+            ta['_' + pr] = v;
+            if (fs) fs(v);
+        });else throw new Error('define setter failed for property: ' + pr);
+
+        ta[pr] = ta['_' + pr];
+    };
+    /**
+     * 属性绑出。被绑定的属性会自动同步。
+     * @param  {Object}   ta 目标对象
+     * @param  {Object}   sr 来源对象
+     * @param  {String}   pr 要绑定的属性
+     * @param  {Function} fn 同步时的回调
+     */
+    var bind = function bind(ta, sr, pr, fn) {
+        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+
+        if (Object.is(typeof pr === 'undefined' ? 'undefined' : _typeof(pr), 'function')) {
+            fn = pr;
+            pr = undefined;
+        }
+        if (pr) {
+            on_set(sr, pr, function (v) {
+                ta[pr] = v;
+                if (fn) fn(pr, v);
+            });
+        } else {
+            var _iteratorNormalCompletion = true;
+            var _didIteratorError = false;
+            var _iteratorError = undefined;
+
+            try {
+                var _loop = function _loop() {
+                    var _step$value = _slicedToArray(_step.value, 2),
+                        pr = _step$value[0],
+                        va = _step$value[1];
+
+                    on_set(sr, pr, function (v) {
+                        ta[pr] = v;
+                        if (fn) fn(pr, v);
+                    });
+                };
+
+                for (var _iterator = Object.iterator(sr)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                    _loop();
+                }
+            } catch (err) {
+                _didIteratorError = true;
+                _iteratorError = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion && _iterator.return) {
+                        _iterator.return();
+                    }
+                } finally {
+                    if (_didIteratorError) {
+                        throw _iteratorError;
+                    }
+                }
+            }
+        }
+    };
+
+    /**
+     * 根据给定参数将区域等分成网格，返回各个网格中心点坐标。
+     * @param  {Number} top     区域顶部
+     * @param  {Number} left    区域左边
+     * @param  {Number} bottom  区域底部
+     * @param  {Number} right   区域右边
+     * @param  {Number} col     列数
+     * @param  {Number} row     行数
+     * @return {Array} 网格数组
+     */
+    var grid = function grid(top, left, bottom, right, col, row) {
+        if (!Object.is(arguments.length, 6)) throw new Error('illegal arguments count, must be 6');
+        if (!Object.is(Number.parseInt(col), col)) throw new Error('illegal arguments col, must be integer: ' + col);
+        if (!Object.is(Number.parseInt(row), row)) throw new Error('illegal arguments row, must be integer: ' + row);
+
+        var gw = (right - left) / col;
+        var gh = (bottom - top) / row;
+
+        var grids = [];
+        for (var i = 0; i < row * col; i++) {
+            grids.push({
+                x: left + (i % col + 0.5) * gw,
+                y: top + (Math.floor(i / col) + 0.5) * gh,
+                w: gw,
+                h: gh
+            });
+        }
+        return grids;
+    };
+
+    var tool = { tween: tween, on_get: on_get, on_set: on_set, bind: bind, grid: grid };
 
     /**
      * 数据模型定义
@@ -42102,7 +42266,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         _createClass(Data, [{
             key: 'tween',
             value: function tween(pr, to, tm, dn) {
-                Data.tween(this, pr, to, tm, dn);
+                tool.tween(this, pr, to, tm, dn);
                 return this;
             }
             /**
@@ -42115,7 +42279,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'on_get',
             value: function on_get(pr, fn) {
-                Data.on_get(this, pr, fn);
+                tool.on_get(this, pr, fn);
                 return this;
             }
             /**
@@ -42129,7 +42293,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'on_set',
             value: function on_set(pr, fs, fg) {
-                Data.on_set(this, pr, fs, fg);
+                tool.on_set(this, pr, fs, fg);
                 return this;
             }
             /**
@@ -42143,7 +42307,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'bindi',
             value: function bindi(sr, pr, fn) {
-                Data.bind(this, sr, pr, fn);
+                tool.bind(this, sr, pr, fn);
                 return this;
             }
             /**
@@ -42157,185 +42321,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         }, {
             key: 'bindo',
             value: function bindo(ta, pr, fn) {
-                Data.bind(ta, this, pr, fn);
+                tool.bind(ta, this, pr, fn);
                 return this;
-            }
-            /**
-             * 缓动动画。静态方法可以指定目标对象。
-             * @param  {Object} ta 目标对象
-             * @param  {String} pr 目标属性
-             * @param  {Number} to 目标值
-             * @param  {Number} tm 总变化时间（MS），默认160
-             * @param  {Function} dn 动画完成时的回调
-             */
-
-        }], [{
-            key: 'tween',
-            value: function tween(ta, pr, to, tm, dn) {
-                if (3 > arguments.length) throw new Error('illegal arguments count, at least 3');
-
-                if (Object.is(typeof tm === 'undefined' ? 'undefined' : _typeof(tm), 'function')) {
-                    dn = tm;
-                    tm = undefined;
-                }
-                if (!tm) tm = 160;
-
-                var fn = _tween.Circ.easeOut;
-                var from = ta[pr];
-                var time = 0;
-                var begin = new Date().getTime();
-
-                if (!ta._tweener) ta._tweener = {};
-                if (ta._tweener[pr]) {
-                    g.app.ticker.remove(ta._tweener[pr]);
-                    delete ta._tweener[pr];
-                }
-                ta._tweener[pr] = function (delta) {
-                    time = new Date().getTime() - begin;
-                    ta[pr] = fn(time, from, to - from, tm);
-                    if (time >= tm) {
-                        ta[pr] = to;
-                        g.app.ticker.remove(ta._tweener[pr]);
-                        delete ta._tweener[pr];
-                        if (dn) dn();
-                    }
-                };
-                g.app.ticker.add(ta._tweener[pr]);
-            }
-            /**
-             * 设置属性get回调。静态方法可以指定目标对象。
-             * @param  {Object}   ta 目标对象
-             * @param  {String}   pr 目标属性
-             * @param  {Function} fn get时的回调
-             */
-
-        }, {
-            key: 'on_get',
-            value: function on_get(ta, pr, fn) {
-                if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
-
-                ta['_' + pr] = ta[pr];
-                if (!fn) fn = function fn() {
-                    return ta['_' + pr];
-                };
-
-                if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, get: fn });else if (ta.__defineGetter__) ta.__defineGetter__(pr, fn);else throw new Error('define getter failed for property: ' + pr);
-            }
-            /**
-             * 设置属性set回调，同时也会设置get回调。静态方法可以指定目标对象。
-             * @param  {Object}   ta 目标对象
-             * @param  {String}   pr 目标属性
-             * @param  {Function} fs set时的回调
-             * @param  {Function} fg get时的回调
-             */
-
-        }, {
-            key: 'on_set',
-            value: function on_set(ta, pr, fs, fg) {
-                if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
-
-                Data.on_get(ta, pr, fg);
-
-                if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, set: function set(v) {
-                        ta['_' + pr] = v;
-                        if (fs) fs(v);
-                    } });else if (ta.__defineSetter__) ta.__defineSetter__(pr, function (v) {
-                    ta['_' + pr] = v;
-                    if (fs) fs(v);
-                });else throw new Error('define setter failed for property: ' + pr);
-
-                ta[pr] = ta['_' + pr];
-            }
-            /**
-             * 属性绑出。被绑定的属性会自动同步。
-             * @param  {Object}   ta 目标对象
-             * @param  {Object}   sr 来源对象
-             * @param  {String}   pr 要绑定的属性
-             * @param  {Function} fn 同步时的回调
-             */
-
-        }, {
-            key: 'bind',
-            value: function bind(ta, sr, pr, fn) {
-                if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
-
-                if (Object.is(typeof pr === 'undefined' ? 'undefined' : _typeof(pr), 'function')) {
-                    fn = pr;
-                    pr = undefined;
-                }
-                if (pr) {
-                    Data.on_set(sr, pr, function (v) {
-                        ta[pr] = v;
-                        if (fn) fn(pr, v);
-                    });
-                } else {
-                    var _iteratorNormalCompletion = true;
-                    var _didIteratorError = false;
-                    var _iteratorError = undefined;
-
-                    try {
-                        var _loop = function _loop() {
-                            var _step$value = _slicedToArray(_step.value, 2),
-                                pr = _step$value[0],
-                                va = _step$value[1];
-
-                            Data.on_set(sr, pr, function (v) {
-                                ta[pr] = v;
-                                if (fn) fn(pr, v);
-                            });
-                        };
-
-                        for (var _iterator = sr[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                            _loop();
-                        }
-                    } catch (err) {
-                        _didIteratorError = true;
-                        _iteratorError = err;
-                    } finally {
-                        try {
-                            if (!_iteratorNormalCompletion && _iterator.return) {
-                                _iterator.return();
-                            }
-                        } finally {
-                            if (_didIteratorError) {
-                                throw _iteratorError;
-                            }
-                        }
-                    }
-                }
-            }
-
-            /**
-             * 根据给定参数将区域等分成网格，返回各个网格中心点坐标。
-             * @param  {Number} top     区域顶部
-             * @param  {Number} left    区域左边
-             * @param  {Number} bottom  区域底部
-             * @param  {Number} right   区域右边
-             * @param  {Number} col     列数
-             * @param  {Number} row     行数
-             * @return {Array} 网格数组
-             */
-
-        }, {
-            key: 'grid',
-            value: function grid(top, left, bottom, right, col, row) {
-                if (!Object.is(arguments.length, 6)) throw new Error('illegal arguments count, must be 6');
-                if (!Object.is(parseInt(col), col)) throw new Error('illegal arguments col, must be integer: ' + col);
-                if (!Object.is(parseInt(row), row)) throw new Error('illegal arguments row, must be integer: ' + row);
-
-                var gw = (right - left) / col;
-                var gh = (bottom - top) / row;
-
-                var grids = [];
-                for (var i = 0; i < row * col; i++) {
-                    grids.push({
-                        x: left + (i % col + 0.5) * gw,
-                        y: top + (Math.floor(i / col) + 0.5) * gh,
-                        w: gw,
-                        h: gh
-                    });
-                }
-                return grids;
             }
         }]);
 
@@ -42348,11 +42335,11 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         function DLabel() {
             _classCallCheck(this, DLabel);
 
-            var _this = _possibleConstructorReturn(this, (DLabel.__proto__ || Object.getPrototypeOf(DLabel)).call(this));
+            var _this2 = _possibleConstructorReturn(this, (DLabel.__proto__ || Object.getPrototypeOf(DLabel)).call(this));
 
-            _this.text = '';
-            _this.align = 'center';
-            return _this;
+            _this2.text = '';
+            _this2.align = 'center';
+            return _this2;
         }
 
         _createClass(DLabel, [{
@@ -42381,14 +42368,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         function DPane() {
             _classCallCheck(this, DPane);
 
-            var _this2 = _possibleConstructorReturn(this, (DPane.__proto__ || Object.getPrototypeOf(DPane)).call(this));
+            var _this3 = _possibleConstructorReturn(this, (DPane.__proto__ || Object.getPrototypeOf(DPane)).call(this));
 
-            _this2.alpha_draw = 0.8;
-            _this2.round = 6;
-            _this2.border = 4;
-            _this2.color_bg = 0x999999;
-            _this2.color_bd = 0xcccccc;
-            return _this2;
+            _this3.alpha_draw = 0.8;
+            _this3.round = 6;
+            _this3.border = 4;
+            _this3.color_bg = 0x999999;
+            _this3.color_bd = 0xcccccc;
+            return _this3;
         }
 
         return DPane;
@@ -42400,13 +42387,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         function DButton() {
             _classCallCheck(this, DButton);
 
-            var _this3 = _possibleConstructorReturn(this, (DButton.__proto__ || Object.getPrototypeOf(DButton)).call(this));
+            var _this4 = _possibleConstructorReturn(this, (DButton.__proto__ || Object.getPrototypeOf(DButton)).call(this));
 
-            _this3.alpha_draw = 1;
-            _this3.border = 1;
+            _this4.alpha_draw = 1;
+            _this4.border = 1;
 
-            _this3.text = '';
-            return _this3;
+            _this4.text = '';
+            return _this4;
         }
 
         _createClass(DButton, [{
@@ -42444,14 +42431,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         function DDialog() {
             _classCallCheck(this, DDialog);
 
-            var _this4 = _possibleConstructorReturn(this, (DDialog.__proto__ || Object.getPrototypeOf(DDialog)).call(this));
+            var _this5 = _possibleConstructorReturn(this, (DDialog.__proto__ || Object.getPrototypeOf(DDialog)).call(this));
 
-            _this4.width = g.screen.width / 2;
-            _this4.height = g.screen.height / 3;
-            _this4.x = g.screen.width / 2;
-            _this4.y = g.screen.height / 2;
-            _this4.options = {};
-            return _this4;
+            _this5.width = g.screen.width / 2;
+            _this5.height = g.screen.height / 3;
+            _this5.x = g.screen.width / 2;
+            _this5.y = g.screen.height / 2;
+            _this5.options = {};
+            return _this5;
         }
 
         _createClass(DDialog, [{
@@ -42472,14 +42459,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         function DPaneResource() {
             _classCallCheck(this, DPaneResource);
 
-            var _this5 = _possibleConstructorReturn(this, (DPaneResource.__proto__ || Object.getPrototypeOf(DPaneResource)).call(this));
+            var _this6 = _possibleConstructorReturn(this, (DPaneResource.__proto__ || Object.getPrototypeOf(DPaneResource)).call(this));
 
-            _this5.width = 256;
-            _this5.height = 32;
-            _this5.x = _this5.width / 2 + _this5.border / 2;
-            _this5.y = _this5.height / 2 + _this5.border / 2;
-            _this5.grid = Data.grid(-_this5.height / 2, -_this5.width / 2, _this5.height / 2, _this5.width / 2, 3, 1);
-            return _this5;
+            _this6.width = 256;
+            _this6.height = 32;
+            _this6.x = _this6.width / 2 + _this6.border / 2;
+            _this6.y = _this6.height / 2 + _this6.border / 2;
+            _this6.grid = tool.grid(-_this6.height / 2, -_this6.width / 2, _this6.height / 2, _this6.width / 2, 3, 1);
+            return _this6;
         }
 
         return DPaneResource;
@@ -42491,13 +42478,13 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         function DPaneOperate() {
             _classCallCheck(this, DPaneOperate);
 
-            var _this6 = _possibleConstructorReturn(this, (DPaneOperate.__proto__ || Object.getPrototypeOf(DPaneOperate)).call(this));
+            var _this7 = _possibleConstructorReturn(this, (DPaneOperate.__proto__ || Object.getPrototypeOf(DPaneOperate)).call(this));
 
-            _this6.width = 256;
-            _this6.height = 80;
-            _this6.x = _this6.width / 2 + _this6.border / 2;
-            _this6.y = g.screen.height - _this6.height / 2 - _this6.border / 2;
-            return _this6;
+            _this7.width = 256;
+            _this7.height = 80;
+            _this7.x = _this7.width / 2 + _this7.border / 2;
+            _this7.y = g.screen.height - _this7.height / 2 - _this7.border / 2;
+            return _this7;
         }
 
         return DPaneOperate;
@@ -42509,28 +42496,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         function DStar() {
             _classCallCheck(this, DStar);
 
-            var _this7 = _possibleConstructorReturn(this, (DStar.__proto__ || Object.getPrototypeOf(DStar)).call(this));
+            var _this8 = _possibleConstructorReturn(this, (DStar.__proto__ || Object.getPrototypeOf(DStar)).call(this));
 
-            _this7.alpha_draw = 1;
-            _this7.border = 0;
+            _this8.alpha_draw = 1;
+            _this8.border = 0;
 
-            _this7.radius = 1;
-            _this7.level = 1;
-            _this7.type = '';
+            _this8.radius = 1;
+            _this8.level = 1;
+            _this8.type = '';
 
-            _this7.on_set('radius', function (v) {
-                _this7.width = v * 2;
-                _this7.height = v * 2;
+            _this8.on_set('radius', function (v) {
+                _this8.width = v * 2;
+                _this8.height = v * 2;
             });
-            _this7.on_set('level', function (v) {
+            _this8.on_set('level', function (v) {
                 var screen = g.screen;
-                _this7.radius = screen.height / 5 + v * screen.height / 80;
-                if (Object.is(_this7.type, 'home')) _this7.radius *= 1.2;
+                _this8.radius = screen.height / 5 + v * screen.height / 80;
+                if (Object.is(_this8.type, 'home')) _this8.radius *= 1.2;
             });
-            _this7.on_set('type', function (v) {
-                return _this7.style_type();
+            _this8.on_set('type', function (v) {
+                return _this8.style_type();
             });
-            return _this7;
+            return _this8;
         }
 
         _createClass(DStar, [{
@@ -42548,14 +42535,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
         return DStar;
     }(DPane);
 
-    module.exports.Data = Data;
-    module.exports.DLabel = DLabel;
-    module.exports.DPane = DPane;
-    module.exports.DButton = DButton;
-    module.exports.DDialog = DDialog;
-    module.exports.DPaneResource = DPaneResource;
-    module.exports.DPaneOperate = DPaneOperate;
-    module.exports.DStar = DStar;
+    module.exports = Object.assign({
+        Data: Data,
+        DLabel: DLabel,
+        DPane: DPane,
+        DButton: DButton,
+        DDialog: DDialog,
+        DPaneResource: DPaneResource,
+        DPaneOperate: DPaneOperate,
+        DStar: DStar
+    }, tool);
 }
 
 /***/ }),
