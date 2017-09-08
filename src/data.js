@@ -34,14 +34,8 @@
      * @param  {Number} tm 总变化时间（MS），默认160
      * @param  {Function} dn 动画完成时的回调
      */
-    let tween = function tween (ta, pr, to, tm, dn) {
-        if (3 > arguments.length) throw new Error('illegal arguments count, at least 3');
-        
-        if (Object.is(typeof tm, 'function')) {
-            dn = tm;
-            tm = undefined;
-        }
-        if (!tm) tm = 160;
+    let tween = function tween (ta, pr, to, dn, tm = 160) {
+        if (!ta || !pr || !to) throw new Error('illegal arguments, require at least 3');
         
         let fn      = t.Circ.easeOut;
         let from    = ta[pr];
@@ -55,7 +49,7 @@
         }
         ta._tweener[pr] = delta => {
             time = new Date().getTime() - begin;
-            ta[pr] = fn(time, from, to - from, tm);
+            ta[pr] = fn(Math.min(time, tm), from, to - from, tm);
             if (time >= tm) {
                 ta[pr] = to;
                 g.app.ticker.remove(ta._tweener[pr]);
@@ -72,13 +66,17 @@
      * @param  {Function} fn get时的回调
      */
     let on_get = function on_get (ta, pr, fn) {
-        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+        if (!ta || !pr) throw new Error('illegal arguments, require at least 2');
 
         ta[`_${pr}`] = ta[pr];
-        if (!fn) fn = () => ta[`_${pr}`];
+        let fg = () => {
+            let va = ta[`_${pr}`];
+            if (fn) fn(pr, va);
+            return va;
+        };
 
-        if (Object.defineProperty) Object.defineProperty(ta, pr, {configurable : true, get : fn});
-        else if (ta.__defineGetter__) ta.__defineGetter__(pr, fn);
+        if (Object.defineProperty) Object.defineProperty(ta, pr, {configurable : true, get : fg});
+        else if (ta.__defineGetter__) ta.__defineGetter__(pr, fg);
         else throw new Error(`define getter failed for property: ${pr}`);
     };
     /**
@@ -89,19 +87,19 @@
      * @param  {Function} fg get时的回调
      */
     let on_set = function on_set (ta, pr, fs, fg) {
-        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+        if (!ta || !pr) throw new Error('illegal arguments, require at least 2');
 
         on_get(ta, pr, fg);
         
         if (Object.defineProperty)
-            Object.defineProperty(ta, pr, {configurable : true, set : v => {
-                ta[`_${pr}`] = v;
-                if (fs) fs(v);
+            Object.defineProperty(ta, pr, {configurable : true, set : va => {
+                ta[`_${pr}`] = va;
+                if (fs) fs(pr, va);
             }});
         else if (ta.__defineSetter__)
-            ta.__defineSetter__(pr, v => {
-                ta[`_${pr}`] = v;
-                if (fs) fs(v);
+            ta.__defineSetter__(pr, va => {
+                ta[`_${pr}`] = va;
+                if (fs) fs(pr, va);
             });
         else throw new Error(`define setter failed for property: ${pr}`);
 
@@ -115,26 +113,24 @@
      * @param  {Function} fn 同步时的回调
      */
     let bind = function bind (ta, sr, pr, fn) {
-        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+        if (!ta || !sr || !pr) throw new Error('illegal arguments, require at least 3');
         
-        if (Object.is(typeof pr, 'function')) {
-            fn = pr;
-            pr = undefined;
-        }
-        if (pr) {
-            on_set(sr, pr, v => {
-                ta[pr] = v;
-                if (fn) fn(pr, v);
-            });
-        } else {
-            for (let [pr, va] of Object.iterator(sr)) {
-                on_set(sr, pr, v => {
-                    ta[pr] = v
-                    if (fn) fn(pr, v);
-                });
-            }
-        }
+        on_set(sr, pr, (k, v) => {
+            ta[pr] = v;
+            if (fn) fn(k, v);
+        });
     };
+
+    let bindall = function bindall (ta, sr, fn) {
+        if (!ta || !sr) throw new Error('illegal arguments, require at least 2');
+
+        for (let pr of Object.keys(sr)) {
+            on_set(sr, pr, (k, v) => {
+                ta[pr] = v;
+                if (fn) fn(k, v);
+            });
+        }
+    }
 
     /**
      * 根据给定参数将区域等分成网格，返回各个网格中心点坐标。
@@ -147,9 +143,9 @@
      * @return {Array} 网格数组
      */
     let grid = function grid (top, left, bottom, right, col, row) {
-        if (!Object.is(arguments.length, 6)) throw new Error('illegal arguments count, must be 6');
-        if (!Object.is(Number.parseInt(col), col))  throw new Error(`illegal arguments col, must be integer: ${col}`);
-        if (!Object.is(Number.parseInt(row), row))  throw new Error(`illegal arguments row, must be integer: ${row}`);
+        if (!Object.is(arguments.length, 6)) throw new Error('illegal arguments, require count 6');
+        if (!Number.isInteger(col)) throw new Error(`illegal arguments, col must be integer: ${col}`);
+        if (!Number.isInteger(row)) throw new Error(`illegal arguments, row must be integer: ${row}`);
 
         let gw = (right - left) / col;
         let gh = (bottom - top) / row;
@@ -166,7 +162,7 @@
         return grids;
     };
 
-    let tool = {tween, on_get, on_set, bind, grid};
+    let tool = {tween, on_get, on_set, bind, bindall, grid};
 
     /**
      * 数据模型定义
@@ -191,8 +187,8 @@
          * @param  {Function} dn 动画完成时的回调
          * @return {Data}     当前对象
          */
-        tween (pr, to, tm, dn) {
-            tool.tween(this, pr, to, tm, dn);
+        tween (pr, to, dn, tm) {
+            tool.tween(this, pr, to, dn, tm);
             return this;
         }
         /**
@@ -236,6 +232,26 @@
          */
         bindo (ta, pr, fn) {
             tool.bind(ta, this, pr, fn);
+            return this;
+        }
+        /**
+         * 所有属性绑入。被绑定的属性会自动同步。
+         * @param  {Object}   sr 来源对象
+         * @param  {Function} fn 同步时的回调
+         * @return {Data}     当前对象
+         */
+        bindalli (sr, fn) {
+            tool.bindall(this, sr, fn);
+            return this;
+        }
+        /**
+         * 所有属性绑出。被绑定的属性会自动同步。
+         * @param  {Object}   ta 目标对象
+         * @param  {Function} fn 同步时的回调
+         * @return {Data}     当前对象
+         */
+        bindallo (ta, fn) {
+            tool.bindall(ta, this, fn);
             return this;
         }
     }
@@ -300,7 +316,7 @@
         }
         
         option (key, val) {
-            if (!key) throw new Error('empty key for option');
+            if (!key) throw new Error('illegal arguments, require key');
             
             if (val) return this.options[key] = val;
             else return this.options[key];
@@ -340,16 +356,16 @@
             this.level  = 1;
             this.type   = '';
             
-            this.on_set('radius', v => {
+            this.on_set('radius', (k, v) => {
                 this.width  = v * 2;
                 this.height = v * 2;
             });
-            this.on_set('level', v => {
+            this.on_set('level', (k, v) => {
                 let screen = g.screen;
                 this.radius = screen.height / 5 + v * screen.height / 80;
                 if (Object.is(this.type, 'home')) this.radius *= 1.2;
             });
-            this.on_set('type', v => this.style_type());
+            this.on_set('type', (k, v) => this.style_type());
         }
         
         style_type () {

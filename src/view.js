@@ -25,7 +25,7 @@
             // this.data.on_set('width',   v => this.width  = v);
             // this.data.on_set('height',  v => this.height = v);
             this.data.bindo(this, 'alpha');
-            this.data.on_set('scale', v => {
+            this.data.on_set('scale', (k, v) => {
                 this.scale.x = v;
                 this.scale.y = v;
             });
@@ -34,28 +34,26 @@
         
         draw () {}
         
-        show (pa, tm, dn) {
-            pa = tm = dn = undefined;
+        show (pa, dn) {
             for (let arg of arguments) {
                 if (Object.is(typeof arg, 'object'))   pa = arg;
-                if (Object.is(typeof arg, 'number'))   tm = arg;
                 if (Object.is(typeof arg, 'function')) dn = arg;
             }
             if (!pa) pa = g.app.stage;
             
             this.data.alpha = 0;
             pa.addChild(this);
-            this.data.tween('alpha', 1, tm, () => {if (dn) dn()});
+            this.data.tween('alpha', 1, dn, 500);
             
             return this;
         }
         
-        hide (dn) {
+        hide (dn = () => {}) {
             this.data.tween('alpha', 0, () => {
-                this.parent.removeChild(this);
-                if (dn) dn();
+                this.parent.removeChild(this)
+                dn();
             });
-            
+
             return this;
         }
         
@@ -74,7 +72,11 @@
             return this;
         }
 
-        auto_interactive (s) {
+        auto_interactive (
+            defa    = () => {},
+            over    = () => {},
+            down    = () => {},
+        ) {
             this.interactive    = true;
             
             this.removeAllListeners('pointerover');
@@ -84,31 +86,36 @@
             this.removeAllListeners('pointerupoutside');
             
             this.on('pointerover', () => {
-                if (s) {
-                    this.layer_top();
-                    this.data.tween('scale', s);
-                }
+                this.layer_top();
                 this.state = 'over';
+                over();
             });
             this.on('pointerout', () => {
-                if (s) this.data.tween('scale', 1);
                 this.state = 'default';
+                defa();
             });
             this.on('pointerdown', () => {
-                if (s) this.data.tween('scale', 1);
+                this.layer_top();
                 this.state = 'down';
+                down();
             });
             this.on('pointerup', () => {
-                if (s) {
-                    this.layer_top();
-                    this.data.tween('scale', s);
-                }
+                this.layer_top();
                 this.state = 'over';
+                over();
             });
             this.on('pointerupoutside', () => {
-                if (s) this.data.tween('scale', 1);
                 this.state = 'default'
+                defa();
             });
+        }
+
+        auto_interactive_scale (scale = 1.05) {
+            this.auto_interactive(
+                () => this.data.tween('scale', 1),
+                () => this.data.tween('scale', scale),
+                () => this.data.tween('scale', 1),
+            );
         }
     }
 
@@ -120,7 +127,7 @@
             this.view = new pixi.Text(this.text, new pixi.TextStyle({fontWeight : '100'}));
             this.addChild(this.view);
             
-            this.data.on_set('text', v => {
+            this.data.on_set('text', (k, v) => {
                 this.view.text = v;
                 this.update();
             });
@@ -128,7 +135,9 @@
         }
         
         update () {
-            this.view.pivot.y = this.view.height / 2;
+            this.data.width     = this.view.width;
+            this.data.height    = this.view.height;
+            this.view.pivot.y   = this.view.height / 2;
             switch (this.data.align) {
                 case 'left':
                     this.view.pivot.x = 0;
@@ -185,11 +194,11 @@
             this.addChild(this.label);
             
             this.data.bindo(this.label.data, 'text');
-            this.data.on_set('width', v => {
+            this.data.on_set('width', (k, v) => {
                 //  this.width  = v;
                 this.label.update();
             });
-            this.data.on_set('height', v => {
+            this.data.on_set('height', (k, v) => {
                 //  this.height = v;
                 this.label.view.style.fontSize    = v * 3 / 5;
                 this.label.update();
@@ -217,7 +226,7 @@
         style_primary () {
             this.buttonMode = true;
             this.data.style_primary();
-            this.auto_interactive(1.05);
+            this.auto_interactive_scale();
             return this;
         }
 
@@ -263,7 +272,7 @@
         }
         
         option (key, val, action) {
-            if (!key || !val) throw new Error('illegal arguments, required: key, val');
+            if (!key || !val) throw new Error('illegal arguments, require: key, val');
             
             let button = new VButton(val).style_primary();
             if (action) button.click(action);
@@ -297,7 +306,7 @@
             }
         }
         
-        show () {super.show(500);}
+        show (dn) {super.show(dn);}
     }
 
 
@@ -343,7 +352,7 @@
             this.data.type = type;
             
             if (Object.is(type, 'home')) this.auto_interactive();
-            else this.auto_interactive(1.2);
+            else this.auto_interactive_scale(1.2);
         }
 
         click (action) {
@@ -366,7 +375,7 @@
             
             this.thumb = true;
             
-            data.on_set(this, 'thumb', v => {
+            data.on_set(this, 'thumb', (k, v) => {
                 if (v)  this.data.tween('scale', 0.12);
                 else    this.data.tween('scale', 1);
             });

@@ -20646,7 +20646,7 @@ exports.default = CountLimiter;
         g.view.pane_resource = new view.VPaneResource(), g.view.pane_operate = new view.VPaneOperate(), g.view.pane_resource.show();
         g.view.pane_operate.show();
 
-        g.view.star_home = new view.VStarHome(), g.view.star_home.data.bindi(g.asset.home);
+        g.view.star_home = new view.VStarHome(), g.view.star_home.data.bindalli(g.asset.home);
         g.view.star_home.show();
         g.view.star_home.layer_bot();
 
@@ -41515,7 +41515,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             // this.data.on_set('width',   v => this.width  = v);
             // this.data.on_set('height',  v => this.height = v);
             _this.data.bindo(_this, 'alpha');
-            _this.data.on_set('scale', function (v) {
+            _this.data.on_set('scale', function (k, v) {
                 _this.scale.x = v;
                 _this.scale.y = v;
             });
@@ -41528,8 +41528,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function draw() {}
         }, {
             key: 'show',
-            value: function show(pa, tm, dn) {
-                pa = tm = dn = undefined;
+            value: function show(pa, dn) {
                 var _iteratorNormalCompletion = true;
                 var _didIteratorError = false;
                 var _iteratorError = undefined;
@@ -41539,7 +41538,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                         var arg = _step.value;
 
                         if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'object')) pa = arg;
-                        if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'number')) tm = arg;
                         if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'function')) dn = arg;
                     }
                 } catch (err) {
@@ -41561,20 +41559,20 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
                 this.data.alpha = 0;
                 pa.addChild(this);
-                this.data.tween('alpha', 1, tm, function () {
-                    if (dn) dn();
-                });
+                this.data.tween('alpha', 1, dn, 500);
 
                 return this;
             }
         }, {
             key: 'hide',
-            value: function hide(dn) {
+            value: function hide() {
                 var _this2 = this;
+
+                var dn = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
 
                 this.data.tween('alpha', 0, function () {
                     _this2.parent.removeChild(_this2);
-                    if (dn) dn();
+                    dn();
                 });
 
                 return this;
@@ -41603,8 +41601,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             }
         }, {
             key: 'auto_interactive',
-            value: function auto_interactive(s) {
+            value: function auto_interactive() {
+                var defa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
+
                 var _this3 = this;
+
+                var over = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
+                var down = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
 
                 this.interactive = true;
 
@@ -41615,30 +41618,42 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.removeAllListeners('pointerupoutside');
 
                 this.on('pointerover', function () {
-                    if (s) {
-                        _this3.layer_top();
-                        _this3.data.tween('scale', s);
-                    }
+                    _this3.layer_top();
                     _this3.state = 'over';
+                    over();
                 });
                 this.on('pointerout', function () {
-                    if (s) _this3.data.tween('scale', 1);
                     _this3.state = 'default';
+                    defa();
                 });
                 this.on('pointerdown', function () {
-                    if (s) _this3.data.tween('scale', 1);
+                    _this3.layer_top();
                     _this3.state = 'down';
+                    down();
                 });
                 this.on('pointerup', function () {
-                    if (s) {
-                        _this3.layer_top();
-                        _this3.data.tween('scale', s);
-                    }
+                    _this3.layer_top();
                     _this3.state = 'over';
+                    over();
                 });
                 this.on('pointerupoutside', function () {
-                    if (s) _this3.data.tween('scale', 1);
                     _this3.state = 'default';
+                    defa();
+                });
+            }
+        }, {
+            key: 'auto_interactive_scale',
+            value: function auto_interactive_scale() {
+                var _this4 = this;
+
+                var scale = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.05;
+
+                this.auto_interactive(function () {
+                    return _this4.data.tween('scale', 1);
+                }, function () {
+                    return _this4.data.tween('scale', scale);
+                }, function () {
+                    return _this4.data.tween('scale', 1);
                 });
             }
         }]);
@@ -41652,26 +41667,28 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VLabel(text) {
             _classCallCheck(this, VLabel);
 
-            var _this4 = _possibleConstructorReturn(this, (VLabel.__proto__ || Object.getPrototypeOf(VLabel)).call(this));
+            var _this5 = _possibleConstructorReturn(this, (VLabel.__proto__ || Object.getPrototypeOf(VLabel)).call(this));
 
-            _this4.data.text = text || '';
+            _this5.data.text = text || '';
 
-            _this4.view = new pixi.Text(_this4.text, new pixi.TextStyle({ fontWeight: '100' }));
-            _this4.addChild(_this4.view);
+            _this5.view = new pixi.Text(_this5.text, new pixi.TextStyle({ fontWeight: '100' }));
+            _this5.addChild(_this5.view);
 
-            _this4.data.on_set('text', function (v) {
-                _this4.view.text = v;
-                _this4.update();
+            _this5.data.on_set('text', function (k, v) {
+                _this5.view.text = v;
+                _this5.update();
             });
-            _this4.data.on_set('align', function () {
-                return _this4.update();
+            _this5.data.on_set('align', function () {
+                return _this5.update();
             });
-            return _this4;
+            return _this5;
         }
 
         _createClass(VLabel, [{
             key: 'update',
             value: function update() {
+                this.data.width = this.view.width;
+                this.data.height = this.view.height;
                 this.view.pivot.y = this.view.height / 2;
                 switch (this.data.align) {
                     case 'left':
@@ -41714,12 +41731,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VPane() {
             _classCallCheck(this, VPane);
 
-            var _this5 = _possibleConstructorReturn(this, (VPane.__proto__ || Object.getPrototypeOf(VPane)).call(this));
+            var _this6 = _possibleConstructorReturn(this, (VPane.__proto__ || Object.getPrototypeOf(VPane)).call(this));
 
-            _this5.on('pointerup', function () {
+            _this6.on('pointerup', function () {
                 return false;
             });
-            return _this5;
+            return _this6;
         }
 
         _createClass(VPane, [{
@@ -41741,24 +41758,24 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VButton(text) {
             _classCallCheck(this, VButton);
 
-            var _this6 = _possibleConstructorReturn(this, (VButton.__proto__ || Object.getPrototypeOf(VButton)).call(this));
+            var _this7 = _possibleConstructorReturn(this, (VButton.__proto__ || Object.getPrototypeOf(VButton)).call(this));
 
-            _this6.data.text = text || '';
+            _this7.data.text = text || '';
 
-            _this6.label = new VLabel();
-            _this6.addChild(_this6.label);
+            _this7.label = new VLabel();
+            _this7.addChild(_this7.label);
 
-            _this6.data.bindo(_this6.label.data, 'text');
-            _this6.data.on_set('width', function (v) {
+            _this7.data.bindo(_this7.label.data, 'text');
+            _this7.data.on_set('width', function (k, v) {
                 //  this.width  = v;
-                _this6.label.update();
+                _this7.label.update();
             });
-            _this6.data.on_set('height', function (v) {
+            _this7.data.on_set('height', function (k, v) {
                 //  this.height = v;
-                _this6.label.view.style.fontSize = v * 3 / 5;
-                _this6.label.update();
+                _this7.label.view.style.fontSize = v * 3 / 5;
+                _this7.label.update();
             });
-            return _this6;
+            return _this7;
         }
 
         _createClass(VButton, [{
@@ -41790,7 +41807,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function style_primary() {
                 this.buttonMode = true;
                 this.data.style_primary();
-                this.auto_interactive(1.05);
+                this.auto_interactive_scale();
                 return this;
             }
         }, {
@@ -41832,18 +41849,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VDialog() {
             _classCallCheck(this, VDialog);
 
-            var _this7 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
+            var _this8 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
 
-            _this7.buttons = {};
+            _this8.buttons = {};
 
-            _this7.interactive = true;
-            return _this7;
+            _this8.interactive = true;
+            return _this8;
         }
 
         _createClass(VDialog, [{
             key: 'option',
             value: function option(key, val, action) {
-                if (!key || !val) throw new Error('illegal arguments, required: key, val');
+                if (!key || !val) throw new Error('illegal arguments, require: key, val');
 
                 var button = new VButton(val).style_primary();
                 if (action) button.click(action);
@@ -41873,8 +41890,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             }
         }, {
             key: 'show',
-            value: function show() {
-                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, 500);
+            value: function show(dn) {
+                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn);
             }
         }]);
 
@@ -41887,7 +41904,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VPaneResource() {
             _classCallCheck(this, VPaneResource);
 
-            var _this8 = _possibleConstructorReturn(this, (VPaneResource.__proto__ || Object.getPrototypeOf(VPaneResource)).call(this));
+            var _this9 = _possibleConstructorReturn(this, (VPaneResource.__proto__ || Object.getPrototypeOf(VPaneResource)).call(this));
 
             var create_resource = function create_resource(name, key, grid) {
                 var icon = new VButton(name).style_icon_small();
@@ -41896,18 +41913,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 label.view.style.fontSize *= 0.5;
                 label.update();
 
-                var padding = (_this8.data.height - icon.data.height) / 2;
+                var padding = (_this9.data.height - icon.data.height) / 2;
                 icon.data.x = grid.x - grid.w / 2 + padding + icon.data.width / 2;
                 label.data.x = grid.x - grid.w / 2 + padding * 1.5 + icon.data.width;
 
-                _this8.addChild(icon);
-                _this8.addChild(label);
+                _this9.addChild(icon);
+                _this9.addChild(label);
             };
 
-            create_resource('炭', 'C14', _this8.data.grid[0]);
-            create_resource('钛', 'Ti', _this8.data.grid[1]);
-            create_resource('钚', 'Pu238', _this8.data.grid[2]);
-            return _this8;
+            create_resource('炭', 'C14', _this9.data.grid[0]);
+            create_resource('钛', 'Ti', _this9.data.grid[1]);
+            create_resource('钚', 'Pu238', _this9.data.grid[2]);
+            return _this9;
         }
 
         return VPaneResource;
@@ -41919,10 +41936,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VPaneOperate() {
             _classCallCheck(this, VPaneOperate);
 
-            var _this9 = _possibleConstructorReturn(this, (VPaneOperate.__proto__ || Object.getPrototypeOf(VPaneOperate)).call(this));
+            var _this10 = _possibleConstructorReturn(this, (VPaneOperate.__proto__ || Object.getPrototypeOf(VPaneOperate)).call(this));
 
-            _this9.addChild(new VButton('结束本轮').style_primary());
-            return _this9;
+            _this10.addChild(new VButton('结束本轮').style_primary());
+            return _this10;
         }
 
         return VPaneOperate;
@@ -41934,13 +41951,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VStar(type) {
             _classCallCheck(this, VStar);
 
-            var _this10 = _possibleConstructorReturn(this, (VStar.__proto__ || Object.getPrototypeOf(VStar)).call(this));
+            var _this11 = _possibleConstructorReturn(this, (VStar.__proto__ || Object.getPrototypeOf(VStar)).call(this));
 
             if (!type) throw new Error('empty star type');
-            _this10.data.type = type;
+            _this11.data.type = type;
 
-            if (Object.is(type, 'home')) _this10.auto_interactive();else _this10.auto_interactive(1.2);
-            return _this10;
+            if (Object.is(type, 'home')) _this11.auto_interactive();else _this11.auto_interactive_scale(1.2);
+            return _this11;
         }
 
         _createClass(VStar, [{
@@ -41969,18 +41986,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VStarHome() {
             _classCallCheck(this, VStarHome);
 
-            var _this11 = _possibleConstructorReturn(this, (VStarHome.__proto__ || Object.getPrototypeOf(VStarHome)).call(this, 'home'));
+            var _this12 = _possibleConstructorReturn(this, (VStarHome.__proto__ || Object.getPrototypeOf(VStarHome)).call(this, 'home'));
 
-            _this11.thumb = true;
+            _this12.thumb = true;
 
-            data.on_set(_this11, 'thumb', function (v) {
-                if (v) _this11.data.tween('scale', 0.12);else _this11.data.tween('scale', 1);
+            data.on_set(_this12, 'thumb', function (k, v) {
+                if (v) _this12.data.tween('scale', 0.12);else _this12.data.tween('scale', 1);
             });
 
-            _this11.click(function () {
-                return _this11.thumb = !_this11.thumb;
+            _this12.click(function () {
+                return _this12.thumb = !_this12.thumb;
             });
-            return _this11;
+            return _this12;
         }
 
         _createClass(VStarHome, [{
@@ -42031,10 +42048,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
@@ -42078,14 +42091,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
      * @param  {Number} tm 总变化时间（MS），默认160
      * @param  {Function} dn 动画完成时的回调
      */
-    var tween = function tween(ta, pr, to, tm, dn) {
-        if (3 > arguments.length) throw new Error('illegal arguments count, at least 3');
+    var tween = function tween(ta, pr, to, dn) {
+        var tm = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 160;
 
-        if (Object.is(typeof tm === 'undefined' ? 'undefined' : _typeof(tm), 'function')) {
-            dn = tm;
-            tm = undefined;
-        }
-        if (!tm) tm = 160;
+        if (!ta || !pr || !to) throw new Error('illegal arguments, require at least 3');
 
         var fn = t.Circ.easeOut;
         var from = ta[pr];
@@ -42099,7 +42108,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         }
         ta._tweener[pr] = function (delta) {
             time = new Date().getTime() - begin;
-            ta[pr] = fn(time, from, to - from, tm);
+            ta[pr] = fn(Math.min(time, tm), from, to - from, tm);
             if (time >= tm) {
                 ta[pr] = to;
                 g.app.ticker.remove(ta._tweener[pr]);
@@ -42116,14 +42125,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
      * @param  {Function} fn get时的回调
      */
     var on_get = function on_get(ta, pr, fn) {
-        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+        if (!ta || !pr) throw new Error('illegal arguments, require at least 2');
 
         ta['_' + pr] = ta[pr];
-        if (!fn) fn = function fn() {
-            return ta['_' + pr];
+        var fg = function fg() {
+            var va = ta['_' + pr];
+            if (fn) fn(pr, va);
+            return va;
         };
 
-        if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, get: fn });else if (ta.__defineGetter__) ta.__defineGetter__(pr, fn);else throw new Error('define getter failed for property: ' + pr);
+        if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, get: fg });else if (ta.__defineGetter__) ta.__defineGetter__(pr, fg);else throw new Error('define getter failed for property: ' + pr);
     };
     /**
      * 设置属性set回调，同时也会设置get回调。可以指定目标对象。
@@ -42133,16 +42144,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
      * @param  {Function} fg get时的回调
      */
     var on_set = function on_set(ta, pr, fs, fg) {
-        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+        if (!ta || !pr) throw new Error('illegal arguments, require at least 2');
 
         on_get(ta, pr, fg);
 
-        if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, set: function set(v) {
-                ta['_' + pr] = v;
-                if (fs) fs(v);
-            } });else if (ta.__defineSetter__) ta.__defineSetter__(pr, function (v) {
-            ta['_' + pr] = v;
-            if (fs) fs(v);
+        if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, set: function set(va) {
+                ta['_' + pr] = va;
+                if (fs) fs(pr, va);
+            } });else if (ta.__defineSetter__) ta.__defineSetter__(pr, function (va) {
+            ta['_' + pr] = va;
+            if (fs) fs(pr, va);
         });else throw new Error('define setter failed for property: ' + pr);
 
         ta[pr] = ta['_' + pr];
@@ -42155,49 +42166,45 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
      * @param  {Function} fn 同步时的回调
      */
     var bind = function bind(ta, sr, pr, fn) {
-        if (2 > arguments.length) throw new Error('illegal arguments count, at least 2');
+        if (!ta || !sr || !pr) throw new Error('illegal arguments, require at least 3');
 
-        if (Object.is(typeof pr === 'undefined' ? 'undefined' : _typeof(pr), 'function')) {
-            fn = pr;
-            pr = undefined;
-        }
-        if (pr) {
-            on_set(sr, pr, function (v) {
-                ta[pr] = v;
-                if (fn) fn(pr, v);
-            });
-        } else {
-            var _iteratorNormalCompletion = true;
-            var _didIteratorError = false;
-            var _iteratorError = undefined;
+        on_set(sr, pr, function (k, v) {
+            ta[pr] = v;
+            if (fn) fn(k, v);
+        });
+    };
 
+    var bindall = function bindall(ta, sr, fn) {
+        if (!ta || !sr) throw new Error('illegal arguments, require at least 2');
+
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            var _loop = function _loop() {
+                var pr = _step.value;
+
+                on_set(sr, pr, function (k, v) {
+                    ta[pr] = v;
+                    if (fn) fn(k, v);
+                });
+            };
+
+            for (var _iterator = Object.keys(sr)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                _loop();
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
             try {
-                var _loop = function _loop() {
-                    var _step$value = _slicedToArray(_step.value, 2),
-                        pr = _step$value[0],
-                        va = _step$value[1];
-
-                    on_set(sr, pr, function (v) {
-                        ta[pr] = v;
-                        if (fn) fn(pr, v);
-                    });
-                };
-
-                for (var _iterator = Object.iterator(sr)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                    _loop();
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
                 }
-            } catch (err) {
-                _didIteratorError = true;
-                _iteratorError = err;
             } finally {
-                try {
-                    if (!_iteratorNormalCompletion && _iterator.return) {
-                        _iterator.return();
-                    }
-                } finally {
-                    if (_didIteratorError) {
-                        throw _iteratorError;
-                    }
+                if (_didIteratorError) {
+                    throw _iteratorError;
                 }
             }
         }
@@ -42214,9 +42221,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
      * @return {Array} 网格数组
      */
     var grid = function grid(top, left, bottom, right, col, row) {
-        if (!Object.is(arguments.length, 6)) throw new Error('illegal arguments count, must be 6');
-        if (!Object.is(Number.parseInt(col), col)) throw new Error('illegal arguments col, must be integer: ' + col);
-        if (!Object.is(Number.parseInt(row), row)) throw new Error('illegal arguments row, must be integer: ' + row);
+        if (!Object.is(arguments.length, 6)) throw new Error('illegal arguments, require count 6');
+        if (!Number.isInteger(col)) throw new Error('illegal arguments, col must be integer: ' + col);
+        if (!Number.isInteger(row)) throw new Error('illegal arguments, row must be integer: ' + row);
 
         var gw = (right - left) / col;
         var gh = (bottom - top) / row;
@@ -42233,7 +42240,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return grids;
     };
 
-    var tool = { tween: tween, on_get: on_get, on_set: on_set, bind: bind, grid: grid };
+    var tool = { tween: tween, on_get: on_get, on_set: on_set, bind: bind, bindall: bindall, grid: grid };
 
     /**
      * 数据模型定义
@@ -42265,8 +42272,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
         _createClass(Data, [{
             key: 'tween',
-            value: function tween(pr, to, tm, dn) {
-                tool.tween(this, pr, to, tm, dn);
+            value: function tween(pr, to, dn, tm) {
+                tool.tween(this, pr, to, dn, tm);
                 return this;
             }
             /**
@@ -42322,6 +42329,32 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             key: 'bindo',
             value: function bindo(ta, pr, fn) {
                 tool.bind(ta, this, pr, fn);
+                return this;
+            }
+            /**
+             * 所有属性绑入。被绑定的属性会自动同步。
+             * @param  {Object}   sr 来源对象
+             * @param  {Function} fn 同步时的回调
+             * @return {Data}     当前对象
+             */
+
+        }, {
+            key: 'bindalli',
+            value: function bindalli(sr, fn) {
+                tool.bindall(this, sr, fn);
+                return this;
+            }
+            /**
+             * 所有属性绑出。被绑定的属性会自动同步。
+             * @param  {Object}   ta 目标对象
+             * @param  {Function} fn 同步时的回调
+             * @return {Data}     当前对象
+             */
+
+        }, {
+            key: 'bindallo',
+            value: function bindallo(ta, fn) {
+                tool.bindall(ta, this, fn);
                 return this;
             }
         }]);
@@ -42444,7 +42477,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         _createClass(DDialog, [{
             key: 'option',
             value: function option(key, val) {
-                if (!key) throw new Error('empty key for option');
+                if (!key) throw new Error('illegal arguments, require key');
 
                 if (val) return this.options[key] = val;else return this.options[key];
             }
@@ -42505,16 +42538,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             _this8.level = 1;
             _this8.type = '';
 
-            _this8.on_set('radius', function (v) {
+            _this8.on_set('radius', function (k, v) {
                 _this8.width = v * 2;
                 _this8.height = v * 2;
             });
-            _this8.on_set('level', function (v) {
+            _this8.on_set('level', function (k, v) {
                 var screen = g.screen;
                 _this8.radius = screen.height / 5 + v * screen.height / 80;
                 if (Object.is(_this8.type, 'home')) _this8.radius *= 1.2;
             });
-            _this8.on_set('type', function (v) {
+            _this8.on_set('type', function (k, v) {
                 return _this8.style_type();
             });
             return _this8;

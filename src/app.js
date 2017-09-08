@@ -34,7 +34,7 @@
         g.view.pane_operate.show();
 
         g.view.star_home        = new view.VStarHome(),
-        g.view.star_home.data.bindi(g.asset.home);
+        g.view.star_home.data.bindalli(g.asset.home);
         g.view.star_home.show();
         g.view.star_home.layer_bot();
 
