@@ -310,13 +310,13 @@
         
         show (dn) {
             g.app.stage.addChild(this);
-            super.show(dn, 800);
+            super.show(dn, 600);
         }
         hide (dn) {
             super.hide(() => {
                 this.parent.removeChild(this);
                 if (dn) dn();
-            }, 800);
+            }, 600);
         }
     }
 
@@ -365,6 +365,7 @@
     class VMapRegion extends VPane {
         constructor () {
             super();
+            this.data.color_bg = 0x0000ff;
         }
 
         generate (level) {
@@ -375,6 +376,7 @@
     class VMapWorld extends VPane {
         constructor () {
             super();
+            this.data.color_bg = 0xff0000;
 
             this.region = null;
             this.next();
@@ -392,36 +394,47 @@
             this.data.width  = g.screen.width * 2 / 3;
             this.data.height = g.screen.height * 2 / 3;
 
-            this.btn_toggle = new VButton('切换').style_primary();
-            this.btn_toggle.data.x = this.data.width / 2 - this.btn_toggle.data.width / 2 - 12;
-            this.btn_toggle.data.y = - this.data.height / 2 + this.btn_toggle.data.height / 2 + 12;
+            let padding = 8;
+            this.btn_toggle = new VButton('切').style_icon_middle();
+            this.btn_toggle.data.x = - this.data.width / 2 + this.btn_toggle.data.width / 2 + padding;
+            this.btn_toggle.data.y = - this.data.height / 2 + this.btn_toggle.data.height / 2 + padding;
             this.btn_toggle.click(() => this.toggle());
-            this.map_world  = map_world;
-            this.map_curr   = null;
+            this.addChild(this.btn_toggle);
 
+            this.btn_close = new VButton('关').style_icon_middle();
+            this.btn_close.data.x = this.data.width / 2 - this.btn_toggle.data.width / 2 - padding;
+            this.btn_close.data.y = - this.data.height / 2 + this.btn_toggle.data.height / 2 + padding;
+            this.btn_close.click(() => this.hide());
+            this.addChild(this.btn_close);
+
+            this.map_world  = map_world;
+            this.map_cur    = map_world;
+
+            this.toggling = false;
             this.toggle();
         }
 
         toggle () {
-            let hide_time = 800;
+            if (this.toggling) return;
+            this.toggling = true;
 
-            if (!this.map_curr) {
-                this.map_curr = this.map_world;
-                hide_time = 0;
+            let map_old = this.map_cur;
+            if (map_old) {
+                map_old.hide(() => {
+                    this.removeChild(map_old);
+                });
             }
 
-            this.map_curr.hide(() => {
-                this.removeChildren();
+            if (Object.is(this.map_cur, this.map_world)) this.map_cur = this.map_world.region;
+            else this.map_cur = this.map_world;
+            this.map_cur.data.width     = this.data.width;
+            this.map_cur.data.height    = this.data.height;
 
-                if (Object.is(this.map_curr, this.map_world)) this.map_curr = this.map_world.region;
-                else this.map_curr = this.map_world;
-                this.map_curr.data.width     = this.data.width;
-                this.map_curr.data.height    = this.data.height;
-
-                this.addChild(this.map_curr);
-                this.addChild(this.btn_toggle);
-                this.map_curr.show(800);
-            }, hide_time);
+            this.addChild(this.map_cur);
+            this.map_cur.layer_bot();
+            this.map_cur.show(() => {
+                this.toggling = false;
+            });
         }
     }
 

@@ -41921,7 +41921,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             key: 'show',
             value: function show(dn) {
                 g.app.stage.addChild(this);
-                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn, 800);
+                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn, 600);
             }
         }, {
             key: 'hide',
@@ -41931,7 +41931,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'hide', this).call(this, function () {
                     _this8.parent.removeChild(_this8);
                     if (dn) dn();
-                }, 800);
+                }, 600);
             }
         }]);
 
@@ -42003,7 +42003,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VMapRegion() {
             _classCallCheck(this, VMapRegion);
 
-            return _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
+            var _this12 = _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
+
+            _this12.data.color_bg = 0x0000ff;
+            return _this12;
         }
 
         _createClass(VMapRegion, [{
@@ -42023,6 +42026,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _classCallCheck(this, VMapWorld);
 
             var _this13 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
+
+            _this13.data.color_bg = 0xff0000;
 
             _this13.region = null;
             _this13.next();
@@ -42051,15 +42056,27 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _this14.data.width = g.screen.width * 2 / 3;
             _this14.data.height = g.screen.height * 2 / 3;
 
-            _this14.btn_toggle = new VButton('切换').style_primary();
-            _this14.btn_toggle.data.x = _this14.data.width / 2 - _this14.btn_toggle.data.width / 2 - 12;
-            _this14.btn_toggle.data.y = -_this14.data.height / 2 + _this14.btn_toggle.data.height / 2 + 12;
+            var padding = 8;
+            _this14.btn_toggle = new VButton('切').style_icon_middle();
+            _this14.btn_toggle.data.x = -_this14.data.width / 2 + _this14.btn_toggle.data.width / 2 + padding;
+            _this14.btn_toggle.data.y = -_this14.data.height / 2 + _this14.btn_toggle.data.height / 2 + padding;
             _this14.btn_toggle.click(function () {
                 return _this14.toggle();
             });
-            _this14.map_world = map_world;
-            _this14.map_curr = null;
+            _this14.addChild(_this14.btn_toggle);
 
+            _this14.btn_close = new VButton('关').style_icon_middle();
+            _this14.btn_close.data.x = _this14.data.width / 2 - _this14.btn_toggle.data.width / 2 - padding;
+            _this14.btn_close.data.y = -_this14.data.height / 2 + _this14.btn_toggle.data.height / 2 + padding;
+            _this14.btn_close.click(function () {
+                return _this14.hide();
+            });
+            _this14.addChild(_this14.btn_close);
+
+            _this14.map_world = map_world;
+            _this14.map_cur = map_world;
+
+            _this14.toggling = false;
             _this14.toggle();
             return _this14;
         }
@@ -42069,24 +42086,25 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function toggle() {
                 var _this15 = this;
 
-                var hide_time = 800;
+                if (this.toggling) return;
+                this.toggling = true;
 
-                if (!this.map_curr) {
-                    this.map_curr = this.map_world;
-                    hide_time = 0;
+                var map_old = this.map_cur;
+                if (map_old) {
+                    map_old.hide(function () {
+                        _this15.removeChild(map_old);
+                    });
                 }
 
-                this.map_curr.hide(function () {
-                    _this15.removeChildren();
+                if (Object.is(this.map_cur, this.map_world)) this.map_cur = this.map_world.region;else this.map_cur = this.map_world;
+                this.map_cur.data.width = this.data.width;
+                this.map_cur.data.height = this.data.height;
 
-                    if (Object.is(_this15.map_curr, _this15.map_world)) _this15.map_curr = _this15.map_world.region;else _this15.map_curr = _this15.map_world;
-                    _this15.map_curr.data.width = _this15.data.width;
-                    _this15.map_curr.data.height = _this15.data.height;
-
-                    _this15.addChild(_this15.map_curr);
-                    _this15.addChild(_this15.btn_toggle);
-                    _this15.map_curr.show(800);
-                }, hide_time);
+                this.addChild(this.map_cur);
+                this.map_cur.layer_bot();
+                this.map_cur.show(function () {
+                    _this15.toggling = false;
+                });
             }
         }]);
 
