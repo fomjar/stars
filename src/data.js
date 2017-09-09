@@ -354,13 +354,25 @@
     class DMapPlace extends Data {
         constructor () {
             super();
+
+            this.grid = {
+                r : 0,
+                c : 0,
+                x : 0,  // rate 0 - 1
+                y : 0   // rate 0 - 1
+            };
+            this.radius = 6;
         }
+
     }
     class DMapRegion extends DPane {
         constructor () {
             super();
+            this.border = 0;
 
             this.level  = 0;
+            this.row = 0;
+            this.col = 0;
             this.place  = [];
         }
 
@@ -368,16 +380,31 @@
             this.level = level;
             this.place = [];
 
-            let place_count = 10 + level + Math.random() * 3;
-            for (let i = 0; i < place_count; i++) {
-                let mapp = new DMapPlace();
-                this.place.push(mapp);
+            this.row = 3 + Math.floor(level / 2);
+            this.col = 3 + Math.ceil(level / 2);
+            let extreme_random = () => {
+                let v = 0.5;
+                while (v >= 0.3 && v <= 0.7) v = Math.random();
+                return v;
+            };
+            for (let r = 0; r < this.row; r++) {
+                let rowp = [];
+                for (let c = 0; c < this.col; c++) {
+                    let p = new DMapPlace();
+                    p.grid.r = r;
+                    p.grid.c = c;
+                    p.grid.x = extreme_random();
+                    p.grid.y = extreme_random();
+                    rowp.push(p);
+                }
+                this.place.push(rowp);
             }
         }
     }
     class DMapWorld extends DPane {
         constructor () {
             super();
+            this.border = 0;
 
             this.level  = 0;
         }

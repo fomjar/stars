@@ -31,6 +31,39 @@
             });
             this.data.bindo(this, 'visible');
         }
+
+        drawLine(x1, y1, x2, y2, line_width = 0.5) {
+            this.beginFill(this.data.color_bd, this.data.alpha_draw);
+            this.moveTo(x1, y1);
+            this.lineTo(x2, y2);
+            this.lineTo(x2 + line_width, y2 + line_width);
+            this.lineTo(x1 + line_width, y1 + line_width);
+            this.endFill();
+
+            this.beginFill(this.data.color_bd, this.data.alpha_draw);
+            this.moveTo(x1, y1);
+            this.lineTo(x2, y2);
+            this.lineTo(x2 - line_width, y2 - line_width);
+            this.lineTo(x1 - line_width, y1 - line_width);
+            this.lineTo(x1, y1);
+            this.endFill();
+
+            this.beginFill(this.data.color_bd, this.data.alpha_draw);
+            this.moveTo(x1, y1);
+            this.lineTo(x2, y2);
+            this.lineTo(x2 + line_width, y2 - line_width);
+            this.lineTo(x1 + line_width, y1 - line_width);
+            this.lineTo(x1, y1);
+            this.endFill();
+
+            this.beginFill(this.data.color_bd, this.data.alpha_draw);
+            this.moveTo(x1, y1);
+            this.lineTo(x2, y2);
+            this.lineTo(x2 - line_width, y2 + line_width);
+            this.lineTo(x1 - line_width, y1 + line_width);
+            this.lineTo(x1, y1);
+            this.endFill();
+        }
         
         draw () {}
         
@@ -310,13 +343,13 @@
         
         show (dn) {
             g.app.stage.addChild(this);
-            super.show(dn, 600);
+            super.show(dn, 500);
         }
         hide (dn) {
             super.hide(() => {
                 this.parent.removeChild(this);
                 if (dn) dn();
-            }, 600);
+            }, 500);
         }
     }
 
@@ -365,11 +398,60 @@
     class VMapRegion extends VPane {
         constructor () {
             super();
-            this.data.color_bg = 0x0000ff;
+        }
+
+        show (dn, tm) {
+            this.data.scale = 0.5;
+            super.show(tm);
+            this.data.tween('scale', 1, dn, tm);
+        }
+
+        hide (dn, tm) {
+            super.hide(tm);
+            this.data.tween('scale', 0.5, dn, tm);
         }
 
         generate (level) {
             this.data.generate(level);
+        }
+
+        draw () {
+            let grid_width = this.data.width / this.data.col;
+            let grid_height = this.data.height / this.data.row;
+
+            let place_coordinate = (p, grid_width, grid_height) => {
+                return {
+                    x : - this.data.width / 2 + (p.grid.c + p.grid.x) * grid_width,
+                    y : - this.data.height / 2 + (p.grid.r + p.grid.y) * grid_height
+                };
+            };
+            let draw_place = (p) => {
+                let coor = place_coordinate(p, grid_width, grid_height);
+                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.drawCircle(coor.x, coor.y, p.radius);
+                this.endFill();
+            };
+            let draw_place_line = (p) => {
+                if (p.grid.c < this.data.place[p.grid.r].length - 1) { // line right
+                    let p2 = this.data.place[p.grid.r][p.grid.c + 1];
+                    let coor1 = place_coordinate(p, grid_width, grid_height);
+                    let coor2 = place_coordinate(p2, grid_width, grid_height);
+                    this.drawLine(coor1.x, coor1.y, coor2.x, coor2.y);
+                }
+                if (p.grid.r < this.data.place.length - 1) { // line down
+                    let p2 = this.data.place[p.grid.r + 1][p.grid.c];
+                    let coor1 = place_coordinate(p, grid_width, grid_height);
+                    let coor2 = place_coordinate(p2, grid_width, grid_height);
+                    this.drawLine(coor1.x, coor1.y, coor2.x, coor2.y);
+                }
+            }
+            this.lineStyle(0);
+            for (let row of this.data.place) {
+                for (let p of row) {
+                    draw_place_line(p);
+                    draw_place(p);
+                }
+            }
         }
     }
 
@@ -395,13 +477,13 @@
             this.data.height = g.screen.height * 2 / 3;
 
             let padding = 8;
-            this.btn_toggle = new VButton('切').style_icon_middle();
+            this.btn_toggle = new VButton('切').style_icon_small();
             this.btn_toggle.data.x = - this.data.width / 2 + this.btn_toggle.data.width / 2 + padding;
             this.btn_toggle.data.y = - this.data.height / 2 + this.btn_toggle.data.height / 2 + padding;
             this.btn_toggle.click(() => this.toggle());
             this.addChild(this.btn_toggle);
 
-            this.btn_close = new VButton('关').style_icon_middle();
+            this.btn_close = new VButton('关').style_icon_small();
             this.btn_close.data.x = this.data.width / 2 - this.btn_toggle.data.width / 2 - padding;
             this.btn_close.data.y = - this.data.height / 2 + this.btn_toggle.data.height / 2 + padding;
             this.btn_close.click(() => this.hide());
@@ -409,6 +491,7 @@
 
             this.map_world  = map_world;
             this.map_cur    = map_world;
+            this.padding    = 80;
 
             this.toggling = false;
             this.toggle();
@@ -427,8 +510,8 @@
 
             if (Object.is(this.map_cur, this.map_world)) this.map_cur = this.map_world.region;
             else this.map_cur = this.map_world;
-            this.map_cur.data.width     = this.data.width;
-            this.map_cur.data.height    = this.data.height;
+            this.map_cur.data.width     = this.data.width - this.padding;
+            this.map_cur.data.height    = this.data.height - this.padding;
 
             this.addChild(this.map_cur);
             this.map_cur.layer_bot();

@@ -41535,6 +41535,42 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }
 
         _createClass(View, [{
+            key: 'drawLine',
+            value: function drawLine(x1, y1, x2, y2) {
+                var line_width = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0.5;
+
+                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.moveTo(x1, y1);
+                this.lineTo(x2, y2);
+                this.lineTo(x2 + line_width, y2 + line_width);
+                this.lineTo(x1 + line_width, y1 + line_width);
+                this.endFill();
+
+                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.moveTo(x1, y1);
+                this.lineTo(x2, y2);
+                this.lineTo(x2 - line_width, y2 - line_width);
+                this.lineTo(x1 - line_width, y1 - line_width);
+                this.lineTo(x1, y1);
+                this.endFill();
+
+                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.moveTo(x1, y1);
+                this.lineTo(x2, y2);
+                this.lineTo(x2 + line_width, y2 - line_width);
+                this.lineTo(x1 + line_width, y1 - line_width);
+                this.lineTo(x1, y1);
+                this.endFill();
+
+                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.moveTo(x1, y1);
+                this.lineTo(x2, y2);
+                this.lineTo(x2 - line_width, y2 + line_width);
+                this.lineTo(x1 - line_width, y1 + line_width);
+                this.lineTo(x1, y1);
+                this.endFill();
+            }
+        }, {
             key: 'draw',
             value: function draw() {}
         }, {
@@ -41921,7 +41957,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             key: 'show',
             value: function show(dn) {
                 g.app.stage.addChild(this);
-                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn, 600);
+                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn, 500);
             }
         }, {
             key: 'hide',
@@ -41931,7 +41967,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'hide', this).call(this, function () {
                     _this8.parent.removeChild(_this8);
                     if (dn) dn();
-                }, 600);
+                }, 500);
             }
         }]);
 
@@ -42003,16 +42039,111 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VMapRegion() {
             _classCallCheck(this, VMapRegion);
 
-            var _this12 = _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
-
-            _this12.data.color_bg = 0x0000ff;
-            return _this12;
+            return _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
         }
 
         _createClass(VMapRegion, [{
+            key: 'show',
+            value: function show(dn, tm) {
+                this.data.scale = 0.5;
+                _get(VMapRegion.prototype.__proto__ || Object.getPrototypeOf(VMapRegion.prototype), 'show', this).call(this, tm);
+                this.data.tween('scale', 1, dn, tm);
+            }
+        }, {
+            key: 'hide',
+            value: function hide(dn, tm) {
+                _get(VMapRegion.prototype.__proto__ || Object.getPrototypeOf(VMapRegion.prototype), 'hide', this).call(this, tm);
+                this.data.tween('scale', 0.5, dn, tm);
+            }
+        }, {
             key: 'generate',
             value: function generate(level) {
                 this.data.generate(level);
+            }
+        }, {
+            key: 'draw',
+            value: function draw() {
+                var _this13 = this;
+
+                var grid_width = this.data.width / this.data.col;
+                var grid_height = this.data.height / this.data.row;
+
+                var place_coordinate = function place_coordinate(p, grid_width, grid_height) {
+                    return {
+                        x: -_this13.data.width / 2 + (p.grid.c + p.grid.x) * grid_width,
+                        y: -_this13.data.height / 2 + (p.grid.r + p.grid.y) * grid_height
+                    };
+                };
+                var draw_place = function draw_place(p) {
+                    var coor = place_coordinate(p, grid_width, grid_height);
+                    _this13.beginFill(_this13.data.color_bd, _this13.data.alpha_draw);
+                    _this13.drawCircle(coor.x, coor.y, p.radius);
+                    _this13.endFill();
+                };
+                var draw_place_line = function draw_place_line(p) {
+                    if (p.grid.c < _this13.data.place[p.grid.r].length - 1) {
+                        // line right
+                        var p2 = _this13.data.place[p.grid.r][p.grid.c + 1];
+                        var coor1 = place_coordinate(p, grid_width, grid_height);
+                        var coor2 = place_coordinate(p2, grid_width, grid_height);
+                        _this13.drawLine(coor1.x, coor1.y, coor2.x, coor2.y);
+                    }
+                    if (p.grid.r < _this13.data.place.length - 1) {
+                        // line down
+                        var _p = _this13.data.place[p.grid.r + 1][p.grid.c];
+                        var _coor = place_coordinate(p, grid_width, grid_height);
+                        var _coor2 = place_coordinate(_p, grid_width, grid_height);
+                        _this13.drawLine(_coor.x, _coor.y, _coor2.x, _coor2.y);
+                    }
+                };
+                this.lineStyle(0);
+                var _iteratorNormalCompletion3 = true;
+                var _didIteratorError3 = false;
+                var _iteratorError3 = undefined;
+
+                try {
+                    for (var _iterator3 = this.data.place[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                        var row = _step3.value;
+                        var _iteratorNormalCompletion4 = true;
+                        var _didIteratorError4 = false;
+                        var _iteratorError4 = undefined;
+
+                        try {
+                            for (var _iterator4 = row[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                                var p = _step4.value;
+
+                                draw_place_line(p);
+                                draw_place(p);
+                            }
+                        } catch (err) {
+                            _didIteratorError4 = true;
+                            _iteratorError4 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                                    _iterator4.return();
+                                }
+                            } finally {
+                                if (_didIteratorError4) {
+                                    throw _iteratorError4;
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError3 = true;
+                    _iteratorError3 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                            _iterator3.return();
+                        }
+                    } finally {
+                        if (_didIteratorError3) {
+                            throw _iteratorError3;
+                        }
+                    }
+                }
             }
         }]);
 
@@ -42025,13 +42156,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VMapWorld() {
             _classCallCheck(this, VMapWorld);
 
-            var _this13 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
+            var _this14 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
 
-            _this13.data.color_bg = 0xff0000;
+            _this14.data.color_bg = 0xff0000;
 
-            _this13.region = null;
-            _this13.next();
-            return _this13;
+            _this14.region = null;
+            _this14.next();
+            return _this14;
         }
 
         _createClass(VMapWorld, [{
@@ -42051,40 +42182,41 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VDialogMap(map_world) {
             _classCallCheck(this, VDialogMap);
 
-            var _this14 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
+            var _this15 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
 
-            _this14.data.width = g.screen.width * 2 / 3;
-            _this14.data.height = g.screen.height * 2 / 3;
+            _this15.data.width = g.screen.width * 2 / 3;
+            _this15.data.height = g.screen.height * 2 / 3;
 
             var padding = 8;
-            _this14.btn_toggle = new VButton('切').style_icon_middle();
-            _this14.btn_toggle.data.x = -_this14.data.width / 2 + _this14.btn_toggle.data.width / 2 + padding;
-            _this14.btn_toggle.data.y = -_this14.data.height / 2 + _this14.btn_toggle.data.height / 2 + padding;
-            _this14.btn_toggle.click(function () {
-                return _this14.toggle();
+            _this15.btn_toggle = new VButton('切').style_icon_small();
+            _this15.btn_toggle.data.x = -_this15.data.width / 2 + _this15.btn_toggle.data.width / 2 + padding;
+            _this15.btn_toggle.data.y = -_this15.data.height / 2 + _this15.btn_toggle.data.height / 2 + padding;
+            _this15.btn_toggle.click(function () {
+                return _this15.toggle();
             });
-            _this14.addChild(_this14.btn_toggle);
+            _this15.addChild(_this15.btn_toggle);
 
-            _this14.btn_close = new VButton('关').style_icon_middle();
-            _this14.btn_close.data.x = _this14.data.width / 2 - _this14.btn_toggle.data.width / 2 - padding;
-            _this14.btn_close.data.y = -_this14.data.height / 2 + _this14.btn_toggle.data.height / 2 + padding;
-            _this14.btn_close.click(function () {
-                return _this14.hide();
+            _this15.btn_close = new VButton('关').style_icon_small();
+            _this15.btn_close.data.x = _this15.data.width / 2 - _this15.btn_toggle.data.width / 2 - padding;
+            _this15.btn_close.data.y = -_this15.data.height / 2 + _this15.btn_toggle.data.height / 2 + padding;
+            _this15.btn_close.click(function () {
+                return _this15.hide();
             });
-            _this14.addChild(_this14.btn_close);
+            _this15.addChild(_this15.btn_close);
 
-            _this14.map_world = map_world;
-            _this14.map_cur = map_world;
+            _this15.map_world = map_world;
+            _this15.map_cur = map_world;
+            _this15.padding = 80;
 
-            _this14.toggling = false;
-            _this14.toggle();
-            return _this14;
+            _this15.toggling = false;
+            _this15.toggle();
+            return _this15;
         }
 
         _createClass(VDialogMap, [{
             key: 'toggle',
             value: function toggle() {
-                var _this15 = this;
+                var _this16 = this;
 
                 if (this.toggling) return;
                 this.toggling = true;
@@ -42092,18 +42224,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 var map_old = this.map_cur;
                 if (map_old) {
                     map_old.hide(function () {
-                        _this15.removeChild(map_old);
+                        _this16.removeChild(map_old);
                     });
                 }
 
                 if (Object.is(this.map_cur, this.map_world)) this.map_cur = this.map_world.region;else this.map_cur = this.map_world;
-                this.map_cur.data.width = this.data.width;
-                this.map_cur.data.height = this.data.height;
+                this.map_cur.data.width = this.data.width - this.padding;
+                this.map_cur.data.height = this.data.height - this.padding;
 
                 this.addChild(this.map_cur);
                 this.map_cur.layer_bot();
                 this.map_cur.show(function () {
-                    _this15.toggling = false;
+                    _this16.toggling = false;
                 });
             }
         }]);
@@ -42628,7 +42760,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         function DMapPlace() {
             _classCallCheck(this, DMapPlace);
 
-            return _possibleConstructorReturn(this, (DMapPlace.__proto__ || Object.getPrototypeOf(DMapPlace)).call(this));
+            var _this9 = _possibleConstructorReturn(this, (DMapPlace.__proto__ || Object.getPrototypeOf(DMapPlace)).call(this));
+
+            _this9.grid = {
+                r: 0,
+                c: 0,
+                x: 0, // rate 0 - 1
+                y: 0 // rate 0 - 1
+            };
+            _this9.radius = 6;
+            return _this9;
         }
 
         return DMapPlace;
@@ -42642,7 +42783,11 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
             var _this10 = _possibleConstructorReturn(this, (DMapRegion.__proto__ || Object.getPrototypeOf(DMapRegion)).call(this));
 
+            _this10.border = 0;
+
             _this10.level = 0;
+            _this10.row = 0;
+            _this10.col = 0;
             _this10.place = [];
             return _this10;
         }
@@ -42653,10 +42798,25 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 this.level = level;
                 this.place = [];
 
-                var place_count = 10 + level + Math.random() * 3;
-                for (var i = 0; i < place_count; i++) {
-                    var mapp = new DMapPlace();
-                    this.place.push(mapp);
+                this.row = 4 + Math.floor(level / 2);
+                this.col = 4 + Math.ceil(level / 2);
+                var extreme_random = function extreme_random() {
+                    var v = 0.5;
+                    while (v >= 0.3 && v <= 0.7) {
+                        v = Math.random();
+                    }return v;
+                };
+                for (var r = 0; r < this.row; r++) {
+                    var rowp = [];
+                    for (var c = 0; c < this.col; c++) {
+                        var p = new DMapPlace();
+                        p.grid.r = r;
+                        p.grid.c = c;
+                        p.grid.x = extreme_random();
+                        p.grid.y = extreme_random();
+                        rowp.push(p);
+                    }
+                    this.place.push(rowp);
                 }
             }
         }]);
@@ -42671,6 +42831,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             _classCallCheck(this, DMapWorld);
 
             var _this11 = _possibleConstructorReturn(this, (DMapWorld.__proto__ || Object.getPrototypeOf(DMapWorld)).call(this));
+
+            _this11.border = 0;
 
             _this11.level = 0;
             return _this11;
