@@ -25,27 +25,30 @@
         };
 
         g.app.ticker.add(delta => frame(g.app.stage));
+
+        if (!g.debug) {
+            window.console = {
+                log     : () => {},
+                trace   : () => {},
+                debug   : () => {},
+                info    : () => {},
+                warn    : () => {},
+                error   : () => {},
+            };
+        }
     };
 
     let init_view = () => {
-        g.view.pane_resource    = new view.VPaneResource(),
-        g.view.pane_operate     = new view.VPaneOperate(),
-        g.view.pane_resource.show();
-        g.view.pane_operate.show();
+        g.view.pane = {};
+        g.app.stage.addChild(g.view.pane.resource    = new view.VPaneResource());
+        g.app.stage.addChild(g.view.pane.operate     = new view.VPaneOperate());
+        g.view.pane.resource.show();
+        g.view.pane.operate.show();
 
-        g.view.star_home        = new view.VStarHome(),
-        g.view.star_home.data.bindalli(g.asset.home);
-        g.view.star_home.show();
-        g.view.star_home.layer_bot();
+        g.view.hero = new view.VHero();
+        g.view.map = new view.VMapWorld();
 
-        g.view.star_home.click(() => {
-        new view.VDialog()
-            .option('1', 'test1')
-            .option('2', 'test2')
-            .option('3', 'test3')
-            .option('4', 'test4')
-            .show();
-        });
+        g.view.pane.operate.btn.click(() => {new view.VDialogMap(g.view.map).show();});
     };
 
     let init = () => {

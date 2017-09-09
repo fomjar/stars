@@ -11636,9 +11636,7 @@ function findTextStyle(item, queue) {
     g.app = new pixi.Application(g.screen.width, g.screen.height, {
         backgroundColor: 0x000000,
         antialias: true
-    }), g.asset = {
-        home: { x: g.screen.width / 2, y: g.screen.height / 2 }
-    };
+    });
 
     module.exports = g;
 }
@@ -20640,18 +20638,31 @@ exports.default = CountLimiter;
         g.app.ticker.add(function (delta) {
             return frame(g.app.stage);
         });
+
+        if (!g.debug) {
+            window.console = {
+                log: function log() {},
+                trace: function trace() {},
+                debug: function debug() {},
+                info: function info() {},
+                warn: function warn() {},
+                error: function error() {}
+            };
+        }
     };
 
     var init_view = function init_view() {
-        g.view.pane_resource = new view.VPaneResource(), g.view.pane_operate = new view.VPaneOperate(), g.view.pane_resource.show();
-        g.view.pane_operate.show();
+        g.view.pane = {};
+        g.app.stage.addChild(g.view.pane.resource = new view.VPaneResource());
+        g.app.stage.addChild(g.view.pane.operate = new view.VPaneOperate());
+        g.view.pane.resource.show();
+        g.view.pane.operate.show();
 
-        g.view.star_home = new view.VStarHome(), g.view.star_home.data.bindalli(g.asset.home);
-        g.view.star_home.show();
-        g.view.star_home.layer_bot();
+        g.view.hero = new view.VHero();
+        g.view.map = new view.VMapWorld();
 
-        g.view.star_home.click(function () {
-            new view.VDialog().option('1', 'test1').option('2', 'test2').option('3', 'test3').option('4', 'test4').show();
+        g.view.pane.operate.btn.click(function () {
+            new view.VDialogMap(g.view.map).show();
         });
     };
 
@@ -41528,7 +41539,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function draw() {}
         }, {
             key: 'show',
-            value: function show(pa, dn) {
+            value: function show(dn, tm) {
+                dn = tm = undefined;
                 var _iteratorNormalCompletion = true;
                 var _didIteratorError = false;
                 var _iteratorError = undefined;
@@ -41537,8 +41549,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                     for (var _iterator = arguments[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                         var arg = _step.value;
 
-                        if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'object')) pa = arg;
                         if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'function')) dn = arg;
+                        if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'number')) tm = arg;
                     }
                 } catch (err) {
                     _didIteratorError = true;
@@ -41555,25 +41567,42 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                     }
                 }
 
-                if (!pa) pa = g.app.stage;
-
                 this.data.alpha = 0;
-                pa.addChild(this);
-                this.data.tween('alpha', 1, dn, 500);
+                this.data.tween('alpha', 1, dn, tm);
 
                 return this;
             }
         }, {
             key: 'hide',
-            value: function hide() {
-                var _this2 = this;
+            value: function hide(dn, tm) {
+                dn = tm = undefined;
+                var _iteratorNormalCompletion2 = true;
+                var _didIteratorError2 = false;
+                var _iteratorError2 = undefined;
 
-                var dn = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
+                try {
+                    for (var _iterator2 = arguments[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                        var arg = _step2.value;
 
-                this.data.tween('alpha', 0, function () {
-                    _this2.parent.removeChild(_this2);
-                    dn();
-                });
+                        if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'function')) dn = arg;
+                        if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'number')) tm = arg;
+                    }
+                } catch (err) {
+                    _didIteratorError2 = true;
+                    _iteratorError2 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                            _iterator2.return();
+                        }
+                    } finally {
+                        if (_didIteratorError2) {
+                            throw _iteratorError2;
+                        }
+                    }
+                }
+
+                this.data.tween('alpha', 0, dn, tm);
 
                 return this;
             }
@@ -41604,7 +41633,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function auto_interactive() {
                 var defa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
 
-                var _this3 = this;
+                var _this2 = this;
 
                 var over = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
                 var down = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
@@ -41618,42 +41647,42 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.removeAllListeners('pointerupoutside');
 
                 this.on('pointerover', function () {
-                    _this3.layer_top();
-                    _this3.state = 'over';
+                    _this2.layer_top();
+                    _this2.state = 'over';
                     over();
                 });
                 this.on('pointerout', function () {
-                    _this3.state = 'default';
+                    _this2.state = 'default';
                     defa();
                 });
                 this.on('pointerdown', function () {
-                    _this3.layer_top();
-                    _this3.state = 'down';
+                    _this2.layer_top();
+                    _this2.state = 'down';
                     down();
                 });
                 this.on('pointerup', function () {
-                    _this3.layer_top();
-                    _this3.state = 'over';
+                    _this2.layer_top();
+                    _this2.state = 'over';
                     over();
                 });
                 this.on('pointerupoutside', function () {
-                    _this3.state = 'default';
+                    _this2.state = 'default';
                     defa();
                 });
             }
         }, {
             key: 'auto_interactive_scale',
             value: function auto_interactive_scale() {
-                var _this4 = this;
+                var _this3 = this;
 
                 var scale = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.05;
 
                 this.auto_interactive(function () {
-                    return _this4.data.tween('scale', 1);
+                    return _this3.data.tween('scale', 1);
                 }, function () {
-                    return _this4.data.tween('scale', scale);
+                    return _this3.data.tween('scale', scale);
                 }, function () {
-                    return _this4.data.tween('scale', 1);
+                    return _this3.data.tween('scale', 1);
                 });
             }
         }]);
@@ -41667,21 +41696,21 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VLabel(text) {
             _classCallCheck(this, VLabel);
 
-            var _this5 = _possibleConstructorReturn(this, (VLabel.__proto__ || Object.getPrototypeOf(VLabel)).call(this));
+            var _this4 = _possibleConstructorReturn(this, (VLabel.__proto__ || Object.getPrototypeOf(VLabel)).call(this));
 
-            _this5.data.text = text || '';
+            _this4.data.text = text || '';
 
-            _this5.view = new pixi.Text(_this5.text, new pixi.TextStyle({ fontWeight: '100' }));
-            _this5.addChild(_this5.view);
+            _this4.view = new pixi.Text(_this4.text, new pixi.TextStyle({ fontWeight: '100' }));
+            _this4.addChild(_this4.view);
 
-            _this5.data.on_set('text', function (k, v) {
-                _this5.view.text = v;
-                _this5.update();
+            _this4.data.on_set('text', function (k, v) {
+                _this4.view.text = v;
+                _this4.update();
             });
-            _this5.data.on_set('align', function () {
-                return _this5.update();
+            _this4.data.on_set('align', function () {
+                return _this4.update();
             });
-            return _this5;
+            return _this4;
         }
 
         _createClass(VLabel, [{
@@ -41731,12 +41760,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VPane() {
             _classCallCheck(this, VPane);
 
-            var _this6 = _possibleConstructorReturn(this, (VPane.__proto__ || Object.getPrototypeOf(VPane)).call(this));
+            var _this5 = _possibleConstructorReturn(this, (VPane.__proto__ || Object.getPrototypeOf(VPane)).call(this));
 
-            _this6.on('pointerup', function () {
+            _this5.on('pointerup', function () {
                 return false;
             });
-            return _this6;
+            return _this5;
         }
 
         _createClass(VPane, [{
@@ -41758,24 +41787,24 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VButton(text) {
             _classCallCheck(this, VButton);
 
-            var _this7 = _possibleConstructorReturn(this, (VButton.__proto__ || Object.getPrototypeOf(VButton)).call(this));
+            var _this6 = _possibleConstructorReturn(this, (VButton.__proto__ || Object.getPrototypeOf(VButton)).call(this));
 
-            _this7.data.text = text || '';
+            _this6.data.text = text || '';
 
-            _this7.label = new VLabel();
-            _this7.addChild(_this7.label);
+            _this6.label = new VLabel();
+            _this6.addChild(_this6.label);
 
-            _this7.data.bindo(_this7.label.data, 'text');
-            _this7.data.on_set('width', function (k, v) {
+            _this6.data.bindo(_this6.label.data, 'text');
+            _this6.data.on_set('width', function (k, v) {
                 //  this.width  = v;
-                _this7.label.update();
+                _this6.label.update();
             });
-            _this7.data.on_set('height', function (k, v) {
+            _this6.data.on_set('height', function (k, v) {
                 //  this.height = v;
-                _this7.label.view.style.fontSize = v * 3 / 5;
-                _this7.label.update();
+                _this6.label.view.style.fontSize = v * 3 / 5;
+                _this6.label.update();
             });
-            return _this7;
+            return _this6;
         }
 
         _createClass(VButton, [{
@@ -41849,12 +41878,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VDialog() {
             _classCallCheck(this, VDialog);
 
-            var _this8 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
+            var _this7 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
 
-            _this8.buttons = {};
+            _this7.buttons = {};
 
-            _this8.interactive = true;
-            return _this8;
+            _this7.interactive = true;
+            return _this7;
         }
 
         _createClass(VDialog, [{
@@ -41891,7 +41920,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
             key: 'show',
             value: function show(dn) {
-                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn);
+                g.app.stage.addChild(this);
+                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn, 800);
+            }
+        }, {
+            key: 'hide',
+            value: function hide(dn) {
+                var _this8 = this;
+
+                _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'hide', this).call(this, function () {
+                    _this8.parent.removeChild(_this8);
+                    if (dn) dn();
+                }, 800);
             }
         }]);
 
@@ -41938,93 +41978,120 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
             var _this10 = _possibleConstructorReturn(this, (VPaneOperate.__proto__ || Object.getPrototypeOf(VPaneOperate)).call(this));
 
-            _this10.addChild(new VButton('结束本轮').style_primary());
+            _this10.addChild(_this10.btn = new VButton('结束本轮').style_primary());
             return _this10;
         }
 
         return VPaneOperate;
     }(VPane);
 
-    var VStar = function (_VPane5) {
-        _inherits(VStar, _VPane5);
+    var VHero = function (_View3) {
+        _inherits(VHero, _View3);
 
-        function VStar(type) {
-            _classCallCheck(this, VStar);
+        function VHero() {
+            _classCallCheck(this, VHero);
 
-            var _this11 = _possibleConstructorReturn(this, (VStar.__proto__ || Object.getPrototypeOf(VStar)).call(this));
-
-            if (!type) throw new Error('empty star type');
-            _this11.data.type = type;
-
-            if (Object.is(type, 'home')) _this11.auto_interactive();else _this11.auto_interactive_scale(1.2);
-            return _this11;
+            return _possibleConstructorReturn(this, (VHero.__proto__ || Object.getPrototypeOf(VHero)).call(this));
         }
 
-        _createClass(VStar, [{
-            key: 'click',
-            value: function click(action) {
-                this.interactive = true;
-                this.on('pointerup', action);
-                return this;
-            }
-        }, {
-            key: 'draw',
-            value: function draw() {
-                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-                this.beginFill(this.data.color_bg, this.data.alpha_draw);
-                this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
-                this.endFill();
+        return VHero;
+    }(View);
+
+    var VMapRegion = function (_VPane5) {
+        _inherits(VMapRegion, _VPane5);
+
+        function VMapRegion() {
+            _classCallCheck(this, VMapRegion);
+
+            return _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
+        }
+
+        _createClass(VMapRegion, [{
+            key: 'generate',
+            value: function generate(level) {
+                this.data.generate(level);
             }
         }]);
 
-        return VStar;
+        return VMapRegion;
     }(VPane);
 
-    var VStarHome = function (_VStar) {
-        _inherits(VStarHome, _VStar);
+    var VMapWorld = function (_VPane6) {
+        _inherits(VMapWorld, _VPane6);
 
-        function VStarHome() {
-            _classCallCheck(this, VStarHome);
+        function VMapWorld() {
+            _classCallCheck(this, VMapWorld);
 
-            var _this12 = _possibleConstructorReturn(this, (VStarHome.__proto__ || Object.getPrototypeOf(VStarHome)).call(this, 'home'));
+            var _this13 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
 
-            _this12.thumb = true;
-
-            data.on_set(_this12, 'thumb', function (k, v) {
-                if (v) _this12.data.tween('scale', 0.12);else _this12.data.tween('scale', 1);
-            });
-
-            _this12.click(function () {
-                return _this12.thumb = !_this12.thumb;
-            });
-            return _this12;
+            _this13.region = null;
+            _this13.next();
+            return _this13;
         }
 
-        _createClass(VStarHome, [{
-            key: 'draw',
-            value: function draw() {
-                _get(VStarHome.prototype.__proto__ || Object.getPrototypeOf(VStarHome.prototype), 'draw', this).call(this);
-
-                var color_mask = undefined;
-                switch (this.state) {
-                    case 'over':
-                        color_mask = 0xffffff;
-                        break;
-                    case 'down':
-                        color_mask = 0x000000;
-                        break;
-                }
-                if (undefined != color_mask) {
-                    this.lineStyle(0);
-                    this.beginFill(color_mask, 0.2);
-                    this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
-                    this.endFill();
-                }
+        _createClass(VMapWorld, [{
+            key: 'next',
+            value: function next() {
+                this.region = new VMapRegion();
+                this.region.generate(++this.data.level);
             }
         }]);
 
-        return VStarHome;
-    }(VStar);
+        return VMapWorld;
+    }(VPane);
+
+    var VDialogMap = function (_VDialog) {
+        _inherits(VDialogMap, _VDialog);
+
+        function VDialogMap(map_world) {
+            _classCallCheck(this, VDialogMap);
+
+            var _this14 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
+
+            _this14.data.width = g.screen.width * 2 / 3;
+            _this14.data.height = g.screen.height * 2 / 3;
+
+            _this14.btn_toggle = new VButton('切换').style_primary();
+            _this14.btn_toggle.data.x = _this14.data.width / 2 - _this14.btn_toggle.data.width / 2 - 12;
+            _this14.btn_toggle.data.y = -_this14.data.height / 2 + _this14.btn_toggle.data.height / 2 + 12;
+            _this14.btn_toggle.click(function () {
+                return _this14.toggle();
+            });
+            _this14.map_world = map_world;
+            _this14.map_curr = null;
+
+            _this14.toggle();
+            return _this14;
+        }
+
+        _createClass(VDialogMap, [{
+            key: 'toggle',
+            value: function toggle() {
+                var _this15 = this;
+
+                var hide_time = 800;
+
+                if (!this.map_curr) {
+                    this.map_curr = this.map_world;
+                    hide_time = 0;
+                }
+
+                this.map_curr.hide(function () {
+                    _this15.removeChildren();
+
+                    if (Object.is(_this15.map_curr, _this15.map_world)) _this15.map_curr = _this15.map_world.region;else _this15.map_curr = _this15.map_world;
+                    _this15.map_curr.data.width = _this15.data.width;
+                    _this15.map_curr.data.height = _this15.data.height;
+
+                    _this15.addChild(_this15.map_curr);
+                    _this15.addChild(_this15.btn_toggle);
+                    _this15.map_curr.show(800);
+                }, hide_time);
+            }
+        }]);
+
+        return VDialogMap;
+    }(VDialog);
 
     module.exports = {
         View: View,
@@ -42034,8 +42101,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         VDialog: VDialog,
         VPaneResource: VPaneResource,
         VPaneOperate: VPaneOperate,
-        VStar: VStar,
-        VStarHome: VStarHome
+        VHero: VHero,
+        VMapRegion: VMapRegion,
+        VMapWorld: VMapWorld,
+        VDialogMap: VDialogMap
     };
 }
 
@@ -42094,7 +42163,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     var tween = function tween(ta, pr, to, dn) {
         var tm = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 160;
 
-        if (!ta || !pr || !to) throw new Error('illegal arguments, require at least 3');
+        if (!ta || !pr || undefined == to) throw new Error('illegal arguments, require at least 3');
 
         var fn = t.Circ.easeOut;
         var from = ta[pr];
@@ -42523,49 +42592,73 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return DPaneOperate;
     }(DPane);
 
-    var DStar = function (_DPane5) {
-        _inherits(DStar, _DPane5);
+    var DHero = function (_Data3) {
+        _inherits(DHero, _Data3);
 
-        function DStar() {
-            _classCallCheck(this, DStar);
+        function DHero() {
+            _classCallCheck(this, DHero);
 
-            var _this8 = _possibleConstructorReturn(this, (DStar.__proto__ || Object.getPrototypeOf(DStar)).call(this));
-
-            _this8.alpha_draw = 1;
-            _this8.border = 0;
-
-            _this8.radius = 1;
-            _this8.level = 1;
-            _this8.type = '';
-
-            _this8.on_set('radius', function (k, v) {
-                _this8.width = v * 2;
-                _this8.height = v * 2;
-            });
-            _this8.on_set('level', function (k, v) {
-                var screen = g.screen;
-                _this8.radius = screen.height / 5 + v * screen.height / 80;
-                if (Object.is(_this8.type, 'home')) _this8.radius *= 1.2;
-            });
-            _this8.on_set('type', function (k, v) {
-                return _this8.style_type();
-            });
-            return _this8;
+            return _possibleConstructorReturn(this, (DHero.__proto__ || Object.getPrototypeOf(DHero)).call(this));
         }
 
-        _createClass(DStar, [{
-            key: 'style_type',
-            value: function style_type() {
-                switch (this.type) {
-                    case 'home':
-                        this.color_bg = 0xcccc99;
-                        this.color_bd = 0x999999;
-                        break;
+        return DHero;
+    }(Data);
+
+    var DMapPlace = function (_Data4) {
+        _inherits(DMapPlace, _Data4);
+
+        function DMapPlace() {
+            _classCallCheck(this, DMapPlace);
+
+            return _possibleConstructorReturn(this, (DMapPlace.__proto__ || Object.getPrototypeOf(DMapPlace)).call(this));
+        }
+
+        return DMapPlace;
+    }(Data);
+
+    var DMapRegion = function (_DPane5) {
+        _inherits(DMapRegion, _DPane5);
+
+        function DMapRegion() {
+            _classCallCheck(this, DMapRegion);
+
+            var _this10 = _possibleConstructorReturn(this, (DMapRegion.__proto__ || Object.getPrototypeOf(DMapRegion)).call(this));
+
+            _this10.level = 0;
+            _this10.place = [];
+            return _this10;
+        }
+
+        _createClass(DMapRegion, [{
+            key: 'generate',
+            value: function generate(level) {
+                this.level = level;
+                this.place = [];
+
+                var place_count = 10 + level + Math.random() * 3;
+                for (var i = 0; i < place_count; i++) {
+                    var mapp = new DMapPlace();
+                    this.place.push(mapp);
                 }
             }
         }]);
 
-        return DStar;
+        return DMapRegion;
+    }(DPane);
+
+    var DMapWorld = function (_DPane6) {
+        _inherits(DMapWorld, _DPane6);
+
+        function DMapWorld() {
+            _classCallCheck(this, DMapWorld);
+
+            var _this11 = _possibleConstructorReturn(this, (DMapWorld.__proto__ || Object.getPrototypeOf(DMapWorld)).call(this));
+
+            _this11.level = 0;
+            return _this11;
+        }
+
+        return DMapWorld;
     }(DPane);
 
     module.exports = Object.assign({
@@ -42576,7 +42669,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         DDialog: DDialog,
         DPaneResource: DPaneResource,
         DPaneOperate: DPaneOperate,
-        DStar: DStar
+        DHero: DHero,
+        DMapPlace: DMapPlace,
+        DMapRegion: DMapRegion,
+        DMapWorld: DMapWorld
     }, tool);
 }
 

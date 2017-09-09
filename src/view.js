@@ -34,25 +34,27 @@
         
         draw () {}
         
-        show (pa, dn) {
+        show (dn, tm) {
+            dn = tm = undefined;
             for (let arg of arguments) {
-                if (Object.is(typeof arg, 'object'))   pa = arg;
                 if (Object.is(typeof arg, 'function')) dn = arg;
+                if (Object.is(typeof arg, 'number'))   tm = arg;
             }
-            if (!pa) pa = g.app.stage;
             
             this.data.alpha = 0;
-            pa.addChild(this);
-            this.data.tween('alpha', 1, dn, 500);
+            this.data.tween('alpha', 1, dn, tm);
             
             return this;
         }
         
-        hide (dn = () => {}) {
-            this.data.tween('alpha', 0, () => {
-                this.parent.removeChild(this)
-                dn();
-            });
+        hide (dn, tm) {
+            dn = tm = undefined;
+            for (let arg of arguments) {
+                if (Object.is(typeof arg, 'function')) dn = arg;
+                if (Object.is(typeof arg, 'number'))   tm = arg;
+            }
+
+            this.data.tween('alpha', 0, dn, tm);
 
             return this;
         }
@@ -306,7 +308,16 @@
             }
         }
         
-        show (dn) {super.show(dn);}
+        show (dn) {
+            g.app.stage.addChild(this);
+            super.show(dn, 800);
+        }
+        hide (dn) {
+            super.hide(() => {
+                this.parent.removeChild(this);
+                if (dn) dn();
+            }, 800);
+        }
     }
 
 
@@ -340,67 +351,77 @@
         constructor () {
             super();
             
-            this.addChild(new VButton('结束本轮').style_primary());
+            this.addChild(this.btn = new VButton('结束本轮').style_primary());
         }
     }
 
 
-    class VStar extends VPane {
-        constructor (type) {
-            super();
-            if (!type) throw new Error('empty star type');
-            this.data.type = type;
-            
-            if (Object.is(type, 'home')) this.auto_interactive();
-            else this.auto_interactive_scale(1.2);
-        }
-
-        click (action) {
-            this.interactive = true;
-            this.on('pointerup', action);
-            return this;
-        }
-        
-        draw () {
-            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-            this.beginFill(this.data.color_bg, this.data.alpha_draw);
-            this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
-            this.endFill();
-        }
-    }
-
-    class VStarHome extends VStar {
+    class VHero extends View {
         constructor () {
-            super('home');
-            
-            this.thumb = true;
-            
-            data.on_set(this, 'thumb', (k, v) => {
-                if (v)  this.data.tween('scale', 0.12);
-                else    this.data.tween('scale', 1);
-            });
-            
-            this.click(() => this.thumb = !this.thumb);
+            super();
         }
-        
-        draw () {
-            super.draw();
-            
-            let color_mask = undefined;
-            switch (this.state) {
-                case 'over':
-                    color_mask = 0xffffff;
-                    break;
-                case 'down':
-                    color_mask = 0x000000;
-                    break;
+    }
+
+    class VMapRegion extends VPane {
+        constructor () {
+            super();
+        }
+
+        generate (level) {
+            this.data.generate(level);
+        }
+    }
+
+    class VMapWorld extends VPane {
+        constructor () {
+            super();
+
+            this.region = null;
+            this.next();
+        }
+
+        next () {
+            this.region = new VMapRegion();
+            this.region.generate(++this.data.level);
+        }
+    }
+
+    class VDialogMap extends VDialog {
+        constructor (map_world) {
+            super();
+            this.data.width  = g.screen.width * 2 / 3;
+            this.data.height = g.screen.height * 2 / 3;
+
+            this.btn_toggle = new VButton('切换').style_primary();
+            this.btn_toggle.data.x = this.data.width / 2 - this.btn_toggle.data.width / 2 - 12;
+            this.btn_toggle.data.y = - this.data.height / 2 + this.btn_toggle.data.height / 2 + 12;
+            this.btn_toggle.click(() => this.toggle());
+            this.map_world  = map_world;
+            this.map_curr   = null;
+
+            this.toggle();
+        }
+
+        toggle () {
+            let hide_time = 800;
+
+            if (!this.map_curr) {
+                this.map_curr = this.map_world;
+                hide_time = 0;
             }
-            if (undefined != color_mask) {
-                this.lineStyle(0);
-                this.beginFill(color_mask, 0.2);
-                this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
-                this.endFill();
-            }
+
+            this.map_curr.hide(() => {
+                this.removeChildren();
+
+                if (Object.is(this.map_curr, this.map_world)) this.map_curr = this.map_world.region;
+                else this.map_curr = this.map_world;
+                this.map_curr.data.width     = this.data.width;
+                this.map_curr.data.height    = this.data.height;
+
+                this.addChild(this.map_curr);
+                this.addChild(this.btn_toggle);
+                this.map_curr.show(800);
+            }, hide_time);
         }
     }
 
@@ -412,8 +433,10 @@
         VDialog,
         VPaneResource,
         VPaneOperate,
-        VStar,
-        VStarHome,
+        VHero,
+        VMapRegion,
+        VMapWorld,
+        VDialogMap,
     };
 
 }

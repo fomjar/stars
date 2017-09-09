@@ -35,7 +35,7 @@
      * @param  {Function} dn 动画完成时的回调
      */
     let tween = function tween (ta, pr, to, dn, tm = 160) {
-        if (!ta || !pr || !to) throw new Error('illegal arguments, require at least 3');
+        if (!ta || !pr || undefined == to) throw new Error('illegal arguments, require at least 3');
         
         let fn      = t.Circ.easeOut;
         let from    = ta[pr];
@@ -346,35 +346,40 @@
             this.y      = g.screen.height - this.height / 2 - this.border / 2;
         }
     }
-    class DStar extends DPane {
+    class DHero extends Data {
         constructor () {
             super();
-            this.alpha_draw = 1;
-            this.border = 0;
-            
-            this.radius = 1;
-            this.level  = 1;
-            this.type   = '';
-            
-            this.on_set('radius', (k, v) => {
-                this.width  = v * 2;
-                this.height = v * 2;
-            });
-            this.on_set('level', (k, v) => {
-                let screen = g.screen;
-                this.radius = screen.height / 5 + v * screen.height / 80;
-                if (Object.is(this.type, 'home')) this.radius *= 1.2;
-            });
-            this.on_set('type', (k, v) => this.style_type());
         }
-        
-        style_type () {
-            switch (this.type) {
-                case 'home':
-                    this.color_bg   = 0xcccc99;
-                    this.color_bd   = 0x999999;
-                    break;
+    }
+    class DMapPlace extends Data {
+        constructor () {
+            super();
+        }
+    }
+    class DMapRegion extends DPane {
+        constructor () {
+            super();
+
+            this.level  = 0;
+            this.place  = [];
+        }
+
+        generate (level) {
+            this.level = level;
+            this.place = [];
+
+            let place_count = 10 + level + Math.random() * 3;
+            for (let i = 0; i < place_count; i++) {
+                let mapp = new DMapPlace();
+                this.place.push(mapp);
             }
+        }
+    }
+    class DMapWorld extends DPane {
+        constructor () {
+            super();
+
+            this.level  = 0;
         }
     }
 
@@ -386,7 +391,10 @@
         DDialog,
         DPaneResource,
         DPaneOperate,
-        DStar,
+        DHero,
+        DMapPlace,
+        DMapRegion,
+        DMapWorld,
     }, tool);
 
 }
