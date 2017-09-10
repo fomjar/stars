@@ -22,45 +22,47 @@
             
             this.data.bindo(this.position, 'x');
             this.data.bindo(this.position, 'y');
-            // this.data.on_set('width',   v => this.width  = v);
-            // this.data.on_set('height',  v => this.height = v);
+            // this.data.onset('width',   v => this.width  = v);
+            // this.data.onset('height',  v => this.height = v);
             this.data.bindo(this, 'alpha');
-            this.data.on_set('scale', (k, v) => {
+            this.data.onset('scale', (k, v) => {
                 this.scale.x = v;
                 this.scale.y = v;
             });
             this.data.bindo(this, 'visible');
         }
 
-        drawLine(x1, y1, x2, y2, line_width = 0.5) {
-            this.beginFill(this.data.color_bd, this.data.alpha_draw);
+        drawLine(x1, y1, x2, y2, width = 1, color = 0x000000, alpha = 1) {
+            this.lineStyle(0);
+
+            this.beginFill(color, alpha);
             this.moveTo(x1, y1);
             this.lineTo(x2, y2);
-            this.lineTo(x2 + line_width, y2 + line_width);
-            this.lineTo(x1 + line_width, y1 + line_width);
+            this.lineTo(x2 + width / 2, y2 + width / 2);
+            this.lineTo(x1 + width / 2, y1 + width / 2);
             this.endFill();
 
-            this.beginFill(this.data.color_bd, this.data.alpha_draw);
+            this.beginFill(color, alpha);
             this.moveTo(x1, y1);
             this.lineTo(x2, y2);
-            this.lineTo(x2 - line_width, y2 - line_width);
-            this.lineTo(x1 - line_width, y1 - line_width);
+            this.lineTo(x2 - width / 2, y2 - width / 2);
+            this.lineTo(x1 - width / 2, y1 - width / 2);
             this.lineTo(x1, y1);
             this.endFill();
 
-            this.beginFill(this.data.color_bd, this.data.alpha_draw);
+            this.beginFill(color, alpha);
             this.moveTo(x1, y1);
             this.lineTo(x2, y2);
-            this.lineTo(x2 + line_width, y2 - line_width);
-            this.lineTo(x1 + line_width, y1 - line_width);
+            this.lineTo(x2 + width / 2, y2 - width / 2);
+            this.lineTo(x1 + width / 2, y1 - width / 2);
             this.lineTo(x1, y1);
             this.endFill();
 
-            this.beginFill(this.data.color_bd, this.data.alpha_draw);
+            this.beginFill(color, alpha);
             this.moveTo(x1, y1);
             this.lineTo(x2, y2);
-            this.lineTo(x2 - line_width, y2 + line_width);
-            this.lineTo(x1 - line_width, y1 + line_width);
+            this.lineTo(x2 - width / 2, y2 + width / 2);
+            this.lineTo(x1 - width / 2, y1 + width / 2);
             this.lineTo(x1, y1);
             this.endFill();
         }
@@ -162,11 +164,11 @@
             this.view = new pixi.Text(this.text, new pixi.TextStyle({fontWeight : '100'}));
             this.addChild(this.view);
             
-            this.data.on_set('text', (k, v) => {
+            this.data.onset('text', (k, v) => {
                 this.view.text = v;
                 this.update();
             });
-            this.data.on_set('align', () => this.update());
+            this.data.onset('align', () => this.update());
         }
         
         update () {
@@ -209,14 +211,16 @@
         }
         
         draw () {
-            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-            this.beginFill(this.data.color_bg, this.data.alpha_draw);
-            this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
-                                 - this.data.height / 2 * this.data.scale_draw,
-                                 this.data.width * this.data.scale_draw,
-                                 this.data.height * this.data.scale_draw,
-                                 this.data.round);
-            this.endFill();
+            if (null != this.data.color_bg) {
+                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+                this.beginFill(this.data.color_bg, this.data.alpha_draw);
+                this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
+                                     - this.data.height / 2 * this.data.scale_draw,
+                                     this.data.width * this.data.scale_draw,
+                                     this.data.height * this.data.scale_draw,
+                                     this.data.round * this.data.scale_draw);
+                this.endFill();
+            }
         }
     }
 
@@ -229,11 +233,11 @@
             this.addChild(this.label);
             
             this.data.bindo(this.label.data, 'text');
-            this.data.on_set('width', (k, v) => {
+            this.data.onset('width', (k, v) => {
                 //  this.width  = v;
                 this.label.update();
             });
-            this.data.on_set('height', (k, v) => {
+            this.data.onset('height', (k, v) => {
                 //  this.height = v;
                 this.label.view.style.fontSize    = v * 3 / 5;
                 this.label.update();
@@ -395,9 +399,46 @@
         }
     }
 
-    class VMapRegion extends VPane {
-        constructor () {
+    class VMapPlace extends VPane {
+        constructor (region) {
             super();
+
+            this.region = region;
+            this.auto_interactive_scale(1.5);
+        }
+
+        draw () {
+            if (null != this.data.color_bg) {
+                let grid_width  = this.region.data.width  / this.region.data.col;
+                let grid_height = this.region.data.height / this.region.data.row;
+                this.data.x = - this.region.data.width  / 2 + (this.data.grid.c + this.data.grid.x) * grid_width;
+                this.data.y = - this.region.data.height / 2 + (this.data.grid.r + this.data.grid.y) * grid_height;
+
+                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+                this.beginFill(this.data.color_bg, this.data.alpha_draw);
+                this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+                this.endFill();
+            }
+        }
+    }
+
+    class VMapRegion extends VPane {
+        constructor (level) {
+            super();
+
+            this.place = [];
+
+            let place = this.data.place(level);
+            for (let row of place) {
+                let r = [];
+                for (let p of row) {
+                    let v = new VMapPlace(this);
+                    Object.assign(v.data, p);
+                    r.push(v);
+                    this.addChild(v);
+                }
+                this.place.push(r);
+            }
         }
 
         show (dn, tm) {
@@ -411,45 +452,20 @@
             this.data.tween('scale', 0.5, dn, tm);
         }
 
-        generate (level) {
-            this.data.generate(level);
-        }
-
         draw () {
-            let grid_width = this.data.width / this.data.col;
-            let grid_height = this.data.height / this.data.row;
-
-            let place_coordinate = (p, grid_width, grid_height) => {
-                return {
-                    x : - this.data.width / 2 + (p.grid.c + p.grid.x) * grid_width,
-                    y : - this.data.height / 2 + (p.grid.r + p.grid.y) * grid_height
-                };
-            };
-            let draw_place = (p) => {
-                let coor = place_coordinate(p, grid_width, grid_height);
-                this.beginFill(this.data.color_bd, this.data.alpha_draw);
-                this.drawCircle(coor.x, coor.y, p.radius);
-                this.endFill();
-            };
-            let draw_place_line = (p) => {
-                if (p.grid.c < this.data.place[p.grid.r].length - 1) { // line right
-                    let p2 = this.data.place[p.grid.r][p.grid.c + 1];
-                    let coor1 = place_coordinate(p, grid_width, grid_height);
-                    let coor2 = place_coordinate(p2, grid_width, grid_height);
-                    this.drawLine(coor1.x, coor1.y, coor2.x, coor2.y);
+            let draw_place_line = (p1) => {
+                if (p1.data.grid.c < this.place[p1.data.grid.r].length - 1) { // line right
+                    let p2 = this.place[p1.data.grid.r][p1.data.grid.c + 1];
+                    this.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y, 1, this.data.color_bd, this.data.alpha_draw);
                 }
-                if (p.grid.r < this.data.place.length - 1) { // line down
-                    let p2 = this.data.place[p.grid.r + 1][p.grid.c];
-                    let coor1 = place_coordinate(p, grid_width, grid_height);
-                    let coor2 = place_coordinate(p2, grid_width, grid_height);
-                    this.drawLine(coor1.x, coor1.y, coor2.x, coor2.y);
+                if (p1.data.grid.r < this.place.length - 1) { // line down
+                    let p2 = this.place[p1.data.grid.r + 1][p1.data.grid.c];
+                    this.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y, 1, this.data.color_bd, this.data.alpha_draw);
                 }
             }
-            this.lineStyle(0);
-            for (let row of this.data.place) {
+            for (let row of this.place) {
                 for (let p of row) {
                     draw_place_line(p);
-                    draw_place(p);
                 }
             }
         }
@@ -465,13 +481,12 @@
         }
 
         next () {
-            this.region = new VMapRegion();
-            this.region.generate(++this.data.level);
+            this.region = new VMapRegion(++this.data.level);
         }
     }
 
     class VDialogMap extends VDialog {
-        constructor (map_world) {
+        constructor (map) {
             super();
             this.data.width  = g.screen.width * 2 / 3;
             this.data.height = g.screen.height * 2 / 3;
@@ -489,8 +504,8 @@
             this.btn_close.click(() => this.hide());
             this.addChild(this.btn_close);
 
-            this.map_world  = map_world;
-            this.map_cur    = map_world;
+            this.map        = map;
+            this.map_cur    = null;
             this.padding    = 80;
 
             this.toggling = false;
@@ -508,16 +523,18 @@
                 });
             }
 
-            if (Object.is(this.map_cur, this.map_world)) this.map_cur = this.map_world.region;
-            else this.map_cur = this.map_world;
+            if (Object.is(this.map_cur, this.map) || !this.map_cur) this.map_cur = this.map.region;
+            else this.map_cur = this.map;
             this.map_cur.data.width     = this.data.width - this.padding;
             this.map_cur.data.height    = this.data.height - this.padding;
 
             this.addChild(this.map_cur);
             this.map_cur.layer_bot();
-            this.map_cur.show(() => {
-                this.toggling = false;
-            });
+            if (map_old) {
+                this.map_cur.show(() => {
+                    this.toggling = false;
+                });
+            } else {this.toggling = false;}
         }
     }
 

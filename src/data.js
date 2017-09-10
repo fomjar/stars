@@ -65,7 +65,7 @@
      * @param  {String}   pr 目标属性
      * @param  {Function} fn get时的回调
      */
-    let on_get = function on_get (ta, pr, fn) {
+    let onget = function onget (ta, pr, fn) {
         if (!ta || !pr) throw new Error('illegal arguments, require at least 2');
 
         ta[`_${pr}`] = ta[pr];
@@ -86,10 +86,10 @@
      * @param  {Function} fs set时的回调
      * @param  {Function} fg get时的回调
      */
-    let on_set = function on_set (ta, pr, fs, fg) {
+    let onset = function onset (ta, pr, fs, fg) {
         if (!ta || !pr) throw new Error('illegal arguments, require at least 2');
 
-        on_get(ta, pr, fg);
+        onget(ta, pr, fg);
         
         if (Object.defineProperty)
             Object.defineProperty(ta, pr, {configurable : true, set : va => {
@@ -115,7 +115,7 @@
     let bind = function bind (ta, sr, pr, fn) {
         if (!ta || !sr || !pr) throw new Error('illegal arguments, require at least 3');
         
-        on_set(sr, pr, (k, v) => {
+        onset(sr, pr, (k, v) => {
             ta[pr] = v;
             if (fn) fn(k, v);
         });
@@ -125,7 +125,7 @@
         if (!ta || !sr) throw new Error('illegal arguments, require at least 2');
 
         for (let pr of Object.keys(sr)) {
-            on_set(sr, pr, (k, v) => {
+            onset(sr, pr, (k, v) => {
                 ta[pr] = v;
                 if (fn) fn(k, v);
             });
@@ -162,7 +162,7 @@
         return grids;
     };
 
-    let tool = {tween, on_get, on_set, bind, bindall, grid};
+    let tool = {tween, onget, onset, bind, bindall, grid};
 
     /**
      * 数据模型定义
@@ -197,8 +197,8 @@
          * @param  {Function} fn get时的回调
          * @return {Data}     当前对象
          */
-        on_get (pr, fn) {
-            tool.on_get(this, pr, fn);
+        onget (pr, fn) {
+            tool.onget(this, pr, fn);
             return this;
         }
         /**
@@ -208,8 +208,8 @@
          * @param  {Function} fg get时的回调
          * @return {Data}     当前对象
          */
-        on_set (pr, fs, fg) {
-            tool.on_set(this, pr, fs, fg);
+        onset (pr, fs, fg) {
+            tool.onset(this, pr, fs, fg);
             return this;
         }
         /**
@@ -269,18 +269,17 @@
     class DPane extends Data {
         constructor () {
             super();
-            this.alpha_draw = 0.8;
             this.round  = 6;
-            this.border = 4;
-            this.color_bg   = 0x999999;
+            this.border = 2;
+            this.color_bg   = null;
             this.color_bd   = 0xcccccc;
         }
     }
     class DButton extends DPane {
         constructor () {
             super();
-            this.alpha_draw = 1;
-            this.border = 1;
+            this.border     = 1;
+            this.color_bg   = 0x888888;
             
             this.text   = '';
         }
@@ -312,6 +311,8 @@
             this.height = g.screen.height / 3;
             this.x      = g.screen.width / 2;
             this.y      = g.screen.height / 2;
+            this.color_bg   = 0x888888;
+
             this.options    = {};
         }
         
@@ -329,6 +330,8 @@
             this.height = 32;
             this.x      = this.width / 2 + this.border / 2;
             this.y      = this.height / 2 + this.border / 2;
+            this.color_bg   = 0x888888;
+
             this.grid   = tool.grid(
                 - this.height / 2,
                 - this.width / 2,
@@ -344,6 +347,7 @@
             this.height = 80;
             this.x      = this.width / 2 + this.border / 2;
             this.y      = g.screen.height - this.height / 2 - this.border / 2;
+            this.color_bg   = 0x888888;
         }
     }
     class DHero extends Data {
@@ -351,60 +355,62 @@
             super();
         }
     }
-    class DMapPlace extends Data {
+    class DMapPlace extends DPane {
         constructor () {
             super();
+            this.border = 1;
+            this.color_bg   = this.color_bd;
 
             this.grid = {
                 r : 0,
                 c : 0,
                 x : 0,  // rate 0 - 1
-                y : 0   // rate 0 - 1
+                y : 0,  // rate 0 - 1
             };
-            this.radius = 6;
+            this.radius = 10;
         }
-
     }
     class DMapRegion extends DPane {
         constructor () {
             super();
-            this.border = 0;
+            this.border = 1;
+            this.color_bg   = this.color_bd;
 
             this.level  = 0;
             this.row = 0;
             this.col = 0;
-            this.place  = [];
         }
 
-        generate (level) {
+        place (level) {
             this.level = level;
-            this.place = [];
-
             this.row = 3 + Math.floor(level / 2);
             this.col = 3 + Math.ceil(level / 2);
             let extreme_random = () => {
-                let v = 0.5;
-                while (v >= 0.3 && v <= 0.7) v = Math.random();
+                let v = 0;
+                v = Math.random();
                 return v;
             };
+
+            let place = [];
             for (let r = 0; r < this.row; r++) {
-                let rowp = [];
+                let row = [];
                 for (let c = 0; c < this.col; c++) {
                     let p = new DMapPlace();
                     p.grid.r = r;
                     p.grid.c = c;
                     p.grid.x = extreme_random();
                     p.grid.y = extreme_random();
-                    rowp.push(p);
+                    row.push(p);
                 }
-                this.place.push(rowp);
+                place.push(row);
             }
+            return place;
         }
     }
     class DMapWorld extends DPane {
         constructor () {
             super();
-            this.border = 0;
+            this.border = 1;
 
             this.level  = 0;
         }

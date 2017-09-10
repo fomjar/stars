@@ -3,7 +3,7 @@
     let pixi = require('pixi.js');
 
     let g = {
-        debug : true,
+        debug : false,
         screen : {
             width   : 800,
             height  : 600

@@ -11623,7 +11623,7 @@ function findTextStyle(item, queue) {
     var pixi = __webpack_require__(20);
 
     var g = {
-        debug: true,
+        debug: false,
         screen: {
             width: 800,
             height: 600
@@ -41523,10 +41523,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
             _this.data.bindo(_this.position, 'x');
             _this.data.bindo(_this.position, 'y');
-            // this.data.on_set('width',   v => this.width  = v);
-            // this.data.on_set('height',  v => this.height = v);
+            // this.data.onset('width',   v => this.width  = v);
+            // this.data.onset('height',  v => this.height = v);
             _this.data.bindo(_this, 'alpha');
-            _this.data.on_set('scale', function (k, v) {
+            _this.data.onset('scale', function (k, v) {
                 _this.scale.x = v;
                 _this.scale.y = v;
             });
@@ -41537,36 +41537,40 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(View, [{
             key: 'drawLine',
             value: function drawLine(x1, y1, x2, y2) {
-                var line_width = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0.5;
+                var width = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 1;
+                var color = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0x000000;
+                var alpha = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 1;
 
-                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.lineStyle(0);
+
+                this.beginFill(color, alpha);
                 this.moveTo(x1, y1);
                 this.lineTo(x2, y2);
-                this.lineTo(x2 + line_width, y2 + line_width);
-                this.lineTo(x1 + line_width, y1 + line_width);
+                this.lineTo(x2 + width / 2, y2 + width / 2);
+                this.lineTo(x1 + width / 2, y1 + width / 2);
                 this.endFill();
 
-                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.beginFill(color, alpha);
                 this.moveTo(x1, y1);
                 this.lineTo(x2, y2);
-                this.lineTo(x2 - line_width, y2 - line_width);
-                this.lineTo(x1 - line_width, y1 - line_width);
+                this.lineTo(x2 - width / 2, y2 - width / 2);
+                this.lineTo(x1 - width / 2, y1 - width / 2);
                 this.lineTo(x1, y1);
                 this.endFill();
 
-                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.beginFill(color, alpha);
                 this.moveTo(x1, y1);
                 this.lineTo(x2, y2);
-                this.lineTo(x2 + line_width, y2 - line_width);
-                this.lineTo(x1 + line_width, y1 - line_width);
+                this.lineTo(x2 + width / 2, y2 - width / 2);
+                this.lineTo(x1 + width / 2, y1 - width / 2);
                 this.lineTo(x1, y1);
                 this.endFill();
 
-                this.beginFill(this.data.color_bd, this.data.alpha_draw);
+                this.beginFill(color, alpha);
                 this.moveTo(x1, y1);
                 this.lineTo(x2, y2);
-                this.lineTo(x2 - line_width, y2 + line_width);
-                this.lineTo(x1 - line_width, y1 + line_width);
+                this.lineTo(x2 - width / 2, y2 + width / 2);
+                this.lineTo(x1 - width / 2, y1 + width / 2);
                 this.lineTo(x1, y1);
                 this.endFill();
             }
@@ -41739,11 +41743,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _this4.view = new pixi.Text(_this4.text, new pixi.TextStyle({ fontWeight: '100' }));
             _this4.addChild(_this4.view);
 
-            _this4.data.on_set('text', function (k, v) {
+            _this4.data.onset('text', function (k, v) {
                 _this4.view.text = v;
                 _this4.update();
             });
-            _this4.data.on_set('align', function () {
+            _this4.data.onset('align', function () {
                 return _this4.update();
             });
             return _this4;
@@ -41807,10 +41811,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(VPane, [{
             key: 'draw',
             value: function draw() {
-                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-                this.beginFill(this.data.color_bg, this.data.alpha_draw);
-                this.drawRoundedRect(-this.data.width / 2 * this.data.scale_draw, -this.data.height / 2 * this.data.scale_draw, this.data.width * this.data.scale_draw, this.data.height * this.data.scale_draw, this.data.round);
-                this.endFill();
+                if (null != this.data.color_bg) {
+                    this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+                    this.beginFill(this.data.color_bg, this.data.alpha_draw);
+                    this.drawRoundedRect(-this.data.width / 2 * this.data.scale_draw, -this.data.height / 2 * this.data.scale_draw, this.data.width * this.data.scale_draw, this.data.height * this.data.scale_draw, this.data.round * this.data.scale_draw);
+                    this.endFill();
+                }
             }
         }]);
 
@@ -41831,11 +41837,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _this6.addChild(_this6.label);
 
             _this6.data.bindo(_this6.label.data, 'text');
-            _this6.data.on_set('width', function (k, v) {
+            _this6.data.onset('width', function (k, v) {
                 //  this.width  = v;
                 _this6.label.update();
             });
-            _this6.data.on_set('height', function (k, v) {
+            _this6.data.onset('height', function (k, v) {
                 //  this.height = v;
                 _this6.label.view.style.fontSize = v * 3 / 5;
                 _this6.label.update();
@@ -42033,13 +42039,105 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         return VHero;
     }(View);
 
-    var VMapRegion = function (_VPane5) {
-        _inherits(VMapRegion, _VPane5);
+    var VMapPlace = function (_VPane5) {
+        _inherits(VMapPlace, _VPane5);
 
-        function VMapRegion() {
+        function VMapPlace(region) {
+            _classCallCheck(this, VMapPlace);
+
+            var _this12 = _possibleConstructorReturn(this, (VMapPlace.__proto__ || Object.getPrototypeOf(VMapPlace)).call(this));
+
+            _this12.region = region;
+            _this12.auto_interactive_scale(1.5);
+            return _this12;
+        }
+
+        _createClass(VMapPlace, [{
+            key: 'draw',
+            value: function draw() {
+                if (null != this.data.color_bg) {
+                    var grid_width = this.region.data.width / this.region.data.col;
+                    var grid_height = this.region.data.height / this.region.data.row;
+                    this.data.x = -this.region.data.width / 2 + (this.data.grid.c + this.data.grid.x) * grid_width;
+                    this.data.y = -this.region.data.height / 2 + (this.data.grid.r + this.data.grid.y) * grid_height;
+
+                    this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+                    this.beginFill(this.data.color_bg, this.data.alpha_draw);
+                    this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+                    this.endFill();
+                }
+            }
+        }]);
+
+        return VMapPlace;
+    }(VPane);
+
+    var VMapRegion = function (_VPane6) {
+        _inherits(VMapRegion, _VPane6);
+
+        function VMapRegion(level) {
             _classCallCheck(this, VMapRegion);
 
-            return _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
+            var _this13 = _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
+
+            _this13.place = [];
+
+            var place = _this13.data.place(level);
+            var _iteratorNormalCompletion3 = true;
+            var _didIteratorError3 = false;
+            var _iteratorError3 = undefined;
+
+            try {
+                for (var _iterator3 = place[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                    var row = _step3.value;
+
+                    var r = [];
+                    var _iteratorNormalCompletion4 = true;
+                    var _didIteratorError4 = false;
+                    var _iteratorError4 = undefined;
+
+                    try {
+                        for (var _iterator4 = row[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                            var p = _step4.value;
+
+                            var v = new VMapPlace(_this13);
+                            Object.assign(v.data, p);
+                            r.push(v);
+                            _this13.addChild(v);
+                        }
+                    } catch (err) {
+                        _didIteratorError4 = true;
+                        _iteratorError4 = err;
+                    } finally {
+                        try {
+                            if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                                _iterator4.return();
+                            }
+                        } finally {
+                            if (_didIteratorError4) {
+                                throw _iteratorError4;
+                            }
+                        }
+                    }
+
+                    _this13.place.push(r);
+                }
+            } catch (err) {
+                _didIteratorError3 = true;
+                _iteratorError3 = err;
+            } finally {
+                try {
+                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                        _iterator3.return();
+                    }
+                } finally {
+                    if (_didIteratorError3) {
+                        throw _iteratorError3;
+                    }
+                }
+            }
+
+            return _this13;
         }
 
         _createClass(VMapRegion, [{
@@ -42056,91 +42154,65 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.data.tween('scale', 0.5, dn, tm);
             }
         }, {
-            key: 'generate',
-            value: function generate(level) {
-                this.data.generate(level);
-            }
-        }, {
             key: 'draw',
             value: function draw() {
-                var _this13 = this;
+                var _this14 = this;
 
-                var grid_width = this.data.width / this.data.col;
-                var grid_height = this.data.height / this.data.row;
-
-                var place_coordinate = function place_coordinate(p, grid_width, grid_height) {
-                    return {
-                        x: -_this13.data.width / 2 + (p.grid.c + p.grid.x) * grid_width,
-                        y: -_this13.data.height / 2 + (p.grid.r + p.grid.y) * grid_height
-                    };
-                };
-                var draw_place = function draw_place(p) {
-                    var coor = place_coordinate(p, grid_width, grid_height);
-                    _this13.beginFill(_this13.data.color_bd, _this13.data.alpha_draw);
-                    _this13.drawCircle(coor.x, coor.y, p.radius);
-                    _this13.endFill();
-                };
-                var draw_place_line = function draw_place_line(p) {
-                    if (p.grid.c < _this13.data.place[p.grid.r].length - 1) {
+                var draw_place_line = function draw_place_line(p1) {
+                    if (p1.data.grid.c < _this14.place[p1.data.grid.r].length - 1) {
                         // line right
-                        var p2 = _this13.data.place[p.grid.r][p.grid.c + 1];
-                        var coor1 = place_coordinate(p, grid_width, grid_height);
-                        var coor2 = place_coordinate(p2, grid_width, grid_height);
-                        _this13.drawLine(coor1.x, coor1.y, coor2.x, coor2.y);
+                        var p2 = _this14.place[p1.data.grid.r][p1.data.grid.c + 1];
+                        _this14.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y, 1, _this14.data.color_bd, _this14.data.alpha_draw);
                     }
-                    if (p.grid.r < _this13.data.place.length - 1) {
+                    if (p1.data.grid.r < _this14.place.length - 1) {
                         // line down
-                        var _p = _this13.data.place[p.grid.r + 1][p.grid.c];
-                        var _coor = place_coordinate(p, grid_width, grid_height);
-                        var _coor2 = place_coordinate(_p, grid_width, grid_height);
-                        _this13.drawLine(_coor.x, _coor.y, _coor2.x, _coor2.y);
+                        var _p = _this14.place[p1.data.grid.r + 1][p1.data.grid.c];
+                        _this14.drawLine(p1.data.x, p1.data.y, _p.data.x, _p.data.y, 1, _this14.data.color_bd, _this14.data.alpha_draw);
                     }
                 };
-                this.lineStyle(0);
-                var _iteratorNormalCompletion3 = true;
-                var _didIteratorError3 = false;
-                var _iteratorError3 = undefined;
+                var _iteratorNormalCompletion5 = true;
+                var _didIteratorError5 = false;
+                var _iteratorError5 = undefined;
 
                 try {
-                    for (var _iterator3 = this.data.place[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                        var row = _step3.value;
-                        var _iteratorNormalCompletion4 = true;
-                        var _didIteratorError4 = false;
-                        var _iteratorError4 = undefined;
+                    for (var _iterator5 = this.place[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                        var row = _step5.value;
+                        var _iteratorNormalCompletion6 = true;
+                        var _didIteratorError6 = false;
+                        var _iteratorError6 = undefined;
 
                         try {
-                            for (var _iterator4 = row[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                                var p = _step4.value;
+                            for (var _iterator6 = row[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                                var p = _step6.value;
 
                                 draw_place_line(p);
-                                draw_place(p);
                             }
                         } catch (err) {
-                            _didIteratorError4 = true;
-                            _iteratorError4 = err;
+                            _didIteratorError6 = true;
+                            _iteratorError6 = err;
                         } finally {
                             try {
-                                if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                                    _iterator4.return();
+                                if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                                    _iterator6.return();
                                 }
                             } finally {
-                                if (_didIteratorError4) {
-                                    throw _iteratorError4;
+                                if (_didIteratorError6) {
+                                    throw _iteratorError6;
                                 }
                             }
                         }
                     }
                 } catch (err) {
-                    _didIteratorError3 = true;
-                    _iteratorError3 = err;
+                    _didIteratorError5 = true;
+                    _iteratorError5 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                            _iterator3.return();
+                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                            _iterator5.return();
                         }
                     } finally {
-                        if (_didIteratorError3) {
-                            throw _iteratorError3;
+                        if (_didIteratorError5) {
+                            throw _iteratorError5;
                         }
                     }
                 }
@@ -42150,26 +42222,25 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         return VMapRegion;
     }(VPane);
 
-    var VMapWorld = function (_VPane6) {
-        _inherits(VMapWorld, _VPane6);
+    var VMapWorld = function (_VPane7) {
+        _inherits(VMapWorld, _VPane7);
 
         function VMapWorld() {
             _classCallCheck(this, VMapWorld);
 
-            var _this14 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
+            var _this15 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
 
-            _this14.data.color_bg = 0xff0000;
+            _this15.data.color_bg = 0xff0000;
 
-            _this14.region = null;
-            _this14.next();
-            return _this14;
+            _this15.region = null;
+            _this15.next();
+            return _this15;
         }
 
         _createClass(VMapWorld, [{
             key: 'next',
             value: function next() {
-                this.region = new VMapRegion();
-                this.region.generate(++this.data.level);
+                this.region = new VMapRegion(++this.data.level);
             }
         }]);
 
@@ -42179,44 +42250,44 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
     var VDialogMap = function (_VDialog) {
         _inherits(VDialogMap, _VDialog);
 
-        function VDialogMap(map_world) {
+        function VDialogMap(map) {
             _classCallCheck(this, VDialogMap);
 
-            var _this15 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
+            var _this16 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
 
-            _this15.data.width = g.screen.width * 2 / 3;
-            _this15.data.height = g.screen.height * 2 / 3;
+            _this16.data.width = g.screen.width * 2 / 3;
+            _this16.data.height = g.screen.height * 2 / 3;
 
             var padding = 8;
-            _this15.btn_toggle = new VButton('切').style_icon_small();
-            _this15.btn_toggle.data.x = -_this15.data.width / 2 + _this15.btn_toggle.data.width / 2 + padding;
-            _this15.btn_toggle.data.y = -_this15.data.height / 2 + _this15.btn_toggle.data.height / 2 + padding;
-            _this15.btn_toggle.click(function () {
-                return _this15.toggle();
+            _this16.btn_toggle = new VButton('切').style_icon_small();
+            _this16.btn_toggle.data.x = -_this16.data.width / 2 + _this16.btn_toggle.data.width / 2 + padding;
+            _this16.btn_toggle.data.y = -_this16.data.height / 2 + _this16.btn_toggle.data.height / 2 + padding;
+            _this16.btn_toggle.click(function () {
+                return _this16.toggle();
             });
-            _this15.addChild(_this15.btn_toggle);
+            _this16.addChild(_this16.btn_toggle);
 
-            _this15.btn_close = new VButton('关').style_icon_small();
-            _this15.btn_close.data.x = _this15.data.width / 2 - _this15.btn_toggle.data.width / 2 - padding;
-            _this15.btn_close.data.y = -_this15.data.height / 2 + _this15.btn_toggle.data.height / 2 + padding;
-            _this15.btn_close.click(function () {
-                return _this15.hide();
+            _this16.btn_close = new VButton('关').style_icon_small();
+            _this16.btn_close.data.x = _this16.data.width / 2 - _this16.btn_toggle.data.width / 2 - padding;
+            _this16.btn_close.data.y = -_this16.data.height / 2 + _this16.btn_toggle.data.height / 2 + padding;
+            _this16.btn_close.click(function () {
+                return _this16.hide();
             });
-            _this15.addChild(_this15.btn_close);
+            _this16.addChild(_this16.btn_close);
 
-            _this15.map_world = map_world;
-            _this15.map_cur = map_world;
-            _this15.padding = 80;
+            _this16.map = map;
+            _this16.map_cur = null;
+            _this16.padding = 80;
 
-            _this15.toggling = false;
-            _this15.toggle();
-            return _this15;
+            _this16.toggling = false;
+            _this16.toggle();
+            return _this16;
         }
 
         _createClass(VDialogMap, [{
             key: 'toggle',
             value: function toggle() {
-                var _this16 = this;
+                var _this17 = this;
 
                 if (this.toggling) return;
                 this.toggling = true;
@@ -42224,19 +42295,23 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 var map_old = this.map_cur;
                 if (map_old) {
                     map_old.hide(function () {
-                        _this16.removeChild(map_old);
+                        _this17.removeChild(map_old);
                     });
                 }
 
-                if (Object.is(this.map_cur, this.map_world)) this.map_cur = this.map_world.region;else this.map_cur = this.map_world;
+                if (Object.is(this.map_cur, this.map) || !this.map_cur) this.map_cur = this.map.region;else this.map_cur = this.map;
                 this.map_cur.data.width = this.data.width - this.padding;
                 this.map_cur.data.height = this.data.height - this.padding;
 
                 this.addChild(this.map_cur);
                 this.map_cur.layer_bot();
-                this.map_cur.show(function () {
-                    _this16.toggling = false;
-                });
+                if (map_old) {
+                    this.map_cur.show(function () {
+                        _this17.toggling = false;
+                    });
+                } else {
+                    this.toggling = false;
+                }
             }
         }]);
 
@@ -42343,7 +42418,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
      * @param  {String}   pr 目标属性
      * @param  {Function} fn get时的回调
      */
-    var on_get = function on_get(ta, pr, fn) {
+    var onget = function onget(ta, pr, fn) {
         if (!ta || !pr) throw new Error('illegal arguments, require at least 2');
 
         ta['_' + pr] = ta[pr];
@@ -42362,10 +42437,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
      * @param  {Function} fs set时的回调
      * @param  {Function} fg get时的回调
      */
-    var on_set = function on_set(ta, pr, fs, fg) {
+    var onset = function onset(ta, pr, fs, fg) {
         if (!ta || !pr) throw new Error('illegal arguments, require at least 2');
 
-        on_get(ta, pr, fg);
+        onget(ta, pr, fg);
 
         if (Object.defineProperty) Object.defineProperty(ta, pr, { configurable: true, set: function set(va) {
                 ta['_' + pr] = va;
@@ -42387,7 +42462,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
     var bind = function bind(ta, sr, pr, fn) {
         if (!ta || !sr || !pr) throw new Error('illegal arguments, require at least 3');
 
-        on_set(sr, pr, function (k, v) {
+        onset(sr, pr, function (k, v) {
             ta[pr] = v;
             if (fn) fn(k, v);
         });
@@ -42404,7 +42479,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             var _loop = function _loop() {
                 var pr = _step.value;
 
-                on_set(sr, pr, function (k, v) {
+                onset(sr, pr, function (k, v) {
                     ta[pr] = v;
                     if (fn) fn(k, v);
                 });
@@ -42459,7 +42534,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return grids;
     };
 
-    var tool = { tween: tween, on_get: on_get, on_set: on_set, bind: bind, bindall: bindall, grid: grid };
+    var tool = { tween: tween, onget: onget, onset: onset, bind: bind, bindall: bindall, grid: grid };
 
     /**
      * 数据模型定义
@@ -42503,9 +42578,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
              */
 
         }, {
-            key: 'on_get',
-            value: function on_get(pr, fn) {
-                tool.on_get(this, pr, fn);
+            key: 'onget',
+            value: function onget(pr, fn) {
+                tool.onget(this, pr, fn);
                 return this;
             }
             /**
@@ -42517,9 +42592,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
              */
 
         }, {
-            key: 'on_set',
-            value: function on_set(pr, fs, fg) {
-                tool.on_set(this, pr, fs, fg);
+            key: 'onset',
+            value: function onset(pr, fs, fg) {
+                tool.onset(this, pr, fs, fg);
                 return this;
             }
             /**
@@ -42622,10 +42697,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
             var _this3 = _possibleConstructorReturn(this, (DPane.__proto__ || Object.getPrototypeOf(DPane)).call(this));
 
-            _this3.alpha_draw = 0.8;
             _this3.round = 6;
-            _this3.border = 4;
-            _this3.color_bg = 0x999999;
+            _this3.border = 2;
+            _this3.color_bg = null;
             _this3.color_bd = 0xcccccc;
             return _this3;
         }
@@ -42641,8 +42715,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
             var _this4 = _possibleConstructorReturn(this, (DButton.__proto__ || Object.getPrototypeOf(DButton)).call(this));
 
-            _this4.alpha_draw = 1;
             _this4.border = 1;
+            _this4.color_bg = 0x888888;
 
             _this4.text = '';
             return _this4;
@@ -42689,6 +42763,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             _this5.height = g.screen.height / 3;
             _this5.x = g.screen.width / 2;
             _this5.y = g.screen.height / 2;
+            _this5.color_bg = 0x888888;
+
             _this5.options = {};
             return _this5;
         }
@@ -42717,6 +42793,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             _this6.height = 32;
             _this6.x = _this6.width / 2 + _this6.border / 2;
             _this6.y = _this6.height / 2 + _this6.border / 2;
+            _this6.color_bg = 0x888888;
+
             _this6.grid = tool.grid(-_this6.height / 2, -_this6.width / 2, _this6.height / 2, _this6.width / 2, 3, 1);
             return _this6;
         }
@@ -42736,6 +42814,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             _this7.height = 80;
             _this7.x = _this7.width / 2 + _this7.border / 2;
             _this7.y = g.screen.height - _this7.height / 2 - _this7.border / 2;
+            _this7.color_bg = 0x888888;
             return _this7;
         }
 
@@ -42754,13 +42833,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return DHero;
     }(Data);
 
-    var DMapPlace = function (_Data4) {
-        _inherits(DMapPlace, _Data4);
+    var DMapPlace = function (_DPane5) {
+        _inherits(DMapPlace, _DPane5);
 
         function DMapPlace() {
             _classCallCheck(this, DMapPlace);
 
             var _this9 = _possibleConstructorReturn(this, (DMapPlace.__proto__ || Object.getPrototypeOf(DMapPlace)).call(this));
+
+            _this9.border = 1;
+            _this9.color_bg = _this9.color_bd;
 
             _this9.grid = {
                 r: 0,
@@ -42768,71 +42850,71 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 x: 0, // rate 0 - 1
                 y: 0 // rate 0 - 1
             };
-            _this9.radius = 6;
+            _this9.radius = 10;
             return _this9;
         }
 
         return DMapPlace;
-    }(Data);
+    }(DPane);
 
-    var DMapRegion = function (_DPane5) {
-        _inherits(DMapRegion, _DPane5);
+    var DMapRegion = function (_DPane6) {
+        _inherits(DMapRegion, _DPane6);
 
         function DMapRegion() {
             _classCallCheck(this, DMapRegion);
 
             var _this10 = _possibleConstructorReturn(this, (DMapRegion.__proto__ || Object.getPrototypeOf(DMapRegion)).call(this));
 
-            _this10.border = 0;
+            _this10.border = 1;
+            _this10.color_bg = _this10.color_bd;
 
             _this10.level = 0;
             _this10.row = 0;
             _this10.col = 0;
-            _this10.place = [];
             return _this10;
         }
 
         _createClass(DMapRegion, [{
-            key: 'generate',
-            value: function generate(level) {
+            key: 'place',
+            value: function place(level) {
                 this.level = level;
-                this.place = [];
-
-                this.row = 4 + Math.floor(level / 2);
-                this.col = 4 + Math.ceil(level / 2);
+                this.row = 3 + Math.floor(level / 2);
+                this.col = 3 + Math.ceil(level / 2);
                 var extreme_random = function extreme_random() {
-                    var v = 0.5;
-                    while (v >= 0.3 && v <= 0.7) {
-                        v = Math.random();
-                    }return v;
+                    var v = 0;
+                    v = Math.random();
+                    return v;
                 };
+
+                var place = [];
                 for (var r = 0; r < this.row; r++) {
-                    var rowp = [];
+                    var row = [];
                     for (var c = 0; c < this.col; c++) {
                         var p = new DMapPlace();
                         p.grid.r = r;
                         p.grid.c = c;
                         p.grid.x = extreme_random();
                         p.grid.y = extreme_random();
-                        rowp.push(p);
+                        row.push(p);
                     }
-                    this.place.push(rowp);
+                    place.push(row);
                 }
+                return place;
             }
         }]);
 
         return DMapRegion;
     }(DPane);
 
-    var DMapWorld = function (_DPane6) {
-        _inherits(DMapWorld, _DPane6);
+    var DMapWorld = function (_DPane7) {
+        _inherits(DMapWorld, _DPane7);
 
         function DMapWorld() {
             _classCallCheck(this, DMapWorld);
 
             var _this11 = _possibleConstructorReturn(this, (DMapWorld.__proto__ || Object.getPrototypeOf(DMapWorld)).call(this));
 
-            _this11.border = 0;
+            _this11.border = 1;
 
             _this11.level = 0;
             return _this11;
