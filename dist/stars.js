@@ -43057,7 +43057,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             var _this8 = _possibleConstructorReturn(this, (DPaneOperate.__proto__ || Object.getPrototypeOf(DPaneOperate)).call(this));
 
             _this8.width = 256;
-            _this8.height = 80;
+            _this8.height = 60;
             _this8.x = _this8.width / 2 + _this8.border / 2;
             _this8.y = g.screen.height - _this8.height / 2 - _this8.border / 2;
             _this8.color_bg = 0x888888;

@@ -364,7 +364,7 @@
         constructor () {
             super();
             this.width  = 256;
-            this.height = 80;
+            this.height = 60;
             this.x      = this.width / 2 + this.border / 2;
             this.y      = g.screen.height - this.height / 2 - this.border / 2;
             this.color_bg   = 0x888888;
