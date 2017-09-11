@@ -32,7 +32,11 @@
             this.data.bindo(this, 'visible');
         }
 
-        drawLine(x1, y1, x2, y2, width = 1, color = 0x000000, alpha = 1) {
+        drawLine(x1, y1, x2, y2) {
+            let color = this.lineColor;
+            let alpha = this.lineAlpha;
+            let width = this.lineWidth;
+
             this.lineStyle(0);
 
             this.beginFill(color, alpha);
@@ -65,9 +69,9 @@
             this.lineTo(x1 - width / 2, y1 + width / 2);
             this.lineTo(x1, y1);
             this.endFill();
+
+            this.lineStyle(width, color, alpha);
         }
-        
-        draw () {}
         
         show (dn, tm) {
             dn = tm = undefined;
@@ -161,7 +165,7 @@
             super();
             this.data.text = text || '';
             
-            this.view = new pixi.Text(this.text, new pixi.TextStyle({fontWeight : '100'}));
+            this.view = new pixi.Text(this.text);
             this.addChild(this.view);
             
             this.data.onset('text', (k, v) => {
@@ -169,6 +173,9 @@
                 this.update();
             });
             this.data.onset('align', () => this.update());
+            this.data.bindo(this.view.style, 'fontSize',    () => this.update());
+            this.data.bindo(this.view.style, 'fontWeight',  () => this.update());
+            this.data.bindo(this.view.style, 'fill');
         }
         
         update () {
@@ -211,15 +218,45 @@
         }
         
         draw () {
-            if (null != this.data.color_bg) {
-                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-                this.beginFill(this.data.color_bg, this.data.alpha_draw);
-                this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
-                                     - this.data.height / 2 * this.data.scale_draw,
-                                     this.data.width * this.data.scale_draw,
-                                     this.data.height * this.data.scale_draw,
-                                     this.data.round * this.data.scale_draw);
-                this.endFill();
+            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+            let color_bg = this.data.color_bg;
+            let alpha_draw = this.data.alpha_draw;
+            if (null == color_bg) {
+                color_bg = 0x000000;
+                alpha_draw = 0;
+            };
+            this.beginFill(color_bg, alpha_draw);
+            this.draw_shape();
+            this.endFill();
+
+            this.draw_post();
+        }
+
+        draw_shape () {
+            this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
+                                 - this.data.height / 2 * this.data.scale_draw,
+                                 this.data.width * this.data.scale_draw,
+                                 this.data.height * this.data.scale_draw,
+                                 this.data.round * this.data.scale_draw);
+        }
+
+        draw_post () {
+            if (this.interactive) {
+                let color_mask = undefined;
+                switch (this.state) {
+                    case 'over':
+                        color_mask = this.data.color_mask_light;
+                        break;
+                    case 'down':
+                        color_mask = this.data.color_mask_dark;
+                        break;
+                }
+                if (undefined != color_mask) {
+                    this.lineStyle(this.data.border, color_mask, this.data.alpha_draw_mask);
+                    this.beginFill(color_mask, this.data.alpha_draw_mask);
+                    this.draw_shape();
+                    this.endFill();
+                }
             }
         }
     }
@@ -233,14 +270,8 @@
             this.addChild(this.label);
             
             this.data.bindo(this.label.data, 'text');
-            this.data.onset('width', (k, v) => {
-                //  this.width  = v;
-                this.label.update();
-            });
             this.data.onset('height', (k, v) => {
-                //  this.height = v;
-                this.label.view.style.fontSize    = v * 3 / 5;
-                this.label.update();
+                this.label.data.fontSize    = v * 3 / 5;
             });
         }
         
@@ -274,30 +305,6 @@
             this.on('pointerup', action);
             return this;
         }
-        
-        draw () {
-            super.draw();
-            
-            let color_mask = undefined;
-            switch (this.state) {
-                case 'over':
-                    color_mask = 0xffffff;
-                    break;
-                case 'down':
-                    color_mask = 0x000000;
-                    break;
-            }
-            if (undefined != color_mask) {
-                this.lineStyle(0);
-                this.beginFill(color_mask, 0.2);
-                this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
-                                     - this.data.height / 2 * this.data.scale_draw,
-                                     this.data.width * this.data.scale_draw,
-                                     this.data.height * this.data.scale_draw,
-                                     this.data.round);
-                this.endFill();
-            }
-        }
     }
 
 
@@ -305,9 +312,13 @@
         constructor () {
             super();
             
+            // this.mask   = new VPane();
+            // this.mask.data.alpha_draw   = 0.01;
+            // this.mask.data.color_bg     = 0x000000;
+            // this.mask.data.width    = g.screen.width;
+            // this.mask.data.height   = g.screen.height;
+            // this.mask.interactive   = true;
             this.buttons = {};
-            
-            this.interactive = true;
         }
         
         option (key, val, action) {
@@ -346,12 +357,15 @@
         }
         
         show (dn) {
+            // g.app.stage.addChild(this.mask);
             g.app.stage.addChild(this);
             super.show(dn, 500);
         }
+
         hide (dn) {
             super.hide(() => {
                 this.parent.removeChild(this);
+                // this.mask.parent.removeChild(this.mask);
                 if (dn) dn();
             }, 500);
         }
@@ -365,9 +379,7 @@
             let create_resource = (name, key, grid) => {
                 let icon = new VButton(name).style_icon_small();
                 let label = new VLabel('0').align_left();
-                label.view.style.fill = 'white';
-                label.view.style.fontSize *= 0.5;
-                label.update();
+                label.data.fill = 'white';
                 
                 let padding = (this.data.height - icon.data.height) / 2;
                 icon.data.x  = grid.x - grid.w / 2 + padding + icon.data.width / 2;
@@ -402,23 +414,20 @@
     class VMapPlace extends VPane {
         constructor (region) {
             super();
-
             this.region = region;
+
             this.auto_interactive_scale(1.5);
         }
 
-        draw () {
-            if (null != this.data.color_bg) {
-                let grid_width  = this.region.data.width  / this.region.data.col;
-                let grid_height = this.region.data.height / this.region.data.row;
-                this.data.x = - this.region.data.width  / 2 + (this.data.grid.c + this.data.grid.x) * grid_width;
-                this.data.y = - this.region.data.height / 2 + (this.data.grid.r + this.data.grid.y) * grid_height;
+        draw_shape () {
+            this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+        }
 
-                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-                this.beginFill(this.data.color_bg, this.data.alpha_draw);
-                this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
-                this.endFill();
-            }
+        update () {
+            let grid_width  = this.region.data.width  / this.region.data.col;
+            let grid_height = this.region.data.height / this.region.data.row;
+            this.data.x = - this.region.data.width  / 2 + (this.data.grid.c + this.data.grid.x) * grid_width;
+            this.data.y = - this.region.data.height / 2 + (this.data.grid.r + this.data.grid.y) * grid_height;
         }
     }
 
@@ -439,6 +448,17 @@
                 }
                 this.place.push(r);
             }
+
+            let update = () => {
+                for (let row of this.place) {
+                    for (let p of row) {
+                        p.update();
+                    }
+                }
+            }
+
+            this.data.onset('width',  update);
+            this.data.onset('height', update);
         }
 
         show (dn, tm) {
@@ -452,15 +472,15 @@
             this.data.tween('scale', 0.5, dn, tm);
         }
 
-        draw () {
+        draw_shape () {
             let draw_place_line = (p1) => {
                 if (p1.data.grid.c < this.place[p1.data.grid.r].length - 1) { // line right
                     let p2 = this.place[p1.data.grid.r][p1.data.grid.c + 1];
-                    this.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y, 1, this.data.color_bd, this.data.alpha_draw);
+                    this.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
                 }
                 if (p1.data.grid.r < this.place.length - 1) { // line down
                     let p2 = this.place[p1.data.grid.r + 1][p1.data.grid.c];
-                    this.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y, 1, this.data.color_bd, this.data.alpha_draw);
+                    this.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
                 }
             }
             for (let row of this.place) {
@@ -474,7 +494,6 @@
     class VMapWorld extends VPane {
         constructor () {
             super();
-            this.data.color_bg = 0xff0000;
 
             this.region = null;
             this.next();

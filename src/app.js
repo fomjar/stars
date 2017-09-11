@@ -11,6 +11,7 @@
         let frame = view => {
             if (view.clear) view.clear();
             if (view.draw)  view.draw();
+            if (view.children) for (let v of view.children) frame(v);
 
             if (g.debug) {
                 if (view.beginFill) {
@@ -20,8 +21,6 @@
                     view.endFill();
                 }
             }
-
-            if (view.children) for (let v of view.children) frame(v);
         };
 
         g.app.ticker.add(delta => frame(g.app.stage));
@@ -46,7 +45,7 @@
         g.view.pane.operate.show();
 
         g.view.hero = new view.VHero();
-        g.view.map = new view.VMapWorld();
+        g.view.map  = new view.VMapWorld();
 
         g.view.pane.operate.btn.click(() => {new view.VDialogMap(g.view.map).show();});
     };

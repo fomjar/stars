@@ -173,11 +173,9 @@
             this.y      = 0;
             this.width  = 1;
             this.height = 1;
-            this.visible    = true;
             this.scale      = 1;
-            this.scale_draw = 1;
             this.alpha      = 1;
-            this.alpha_draw = 1;
+            this.visible    = true;
         }
         /**
          * 缓动动画。
@@ -261,6 +259,10 @@
             
             this.text   = '';
             this.align  = 'center';
+
+            this.fontSize       = 14;
+            this.fontWeight     = 100;
+            this.fill           = '#333333';
         }
         align_left   () {this.align = 'left';}
         align_center () {this.align = 'center';}
@@ -269,15 +271,21 @@
     class DPane extends Data {
         constructor () {
             super();
-            this.round  = 6;
-            this.border = 2;
+            this.round      = 1;
+            this.border     = 2;
+            this.scale_draw = 1;
+            this.alpha_draw = 1;
+            this.alpha_draw_mask    = 0.2;
             this.color_bg   = null;
             this.color_bd   = 0xcccccc;
+            this.color_mask_light   = 0xffffff;
+            this.color_mask_dark    = 0x000000;
         }
     }
     class DButton extends DPane {
         constructor () {
             super();
+            this.round      = 6;
             this.border     = 1;
             this.color_bg   = 0x888888;
             
@@ -359,7 +367,7 @@
         constructor () {
             super();
             this.border = 1;
-            this.color_bg   = this.color_bd;
+            this.color_bg = 0x888888;
 
             this.grid = {
                 r : 0,
@@ -374,7 +382,6 @@
         constructor () {
             super();
             this.border = 1;
-            this.color_bg   = this.color_bd;
 
             this.level  = 0;
             this.row = 0;
@@ -411,6 +418,7 @@
         constructor () {
             super();
             this.border = 1;
+            this.color_bg = 0xff0000;
 
             this.level  = 0;
         }

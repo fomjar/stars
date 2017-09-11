@@ -20598,16 +20598,6 @@ exports.default = CountLimiter;
         var frame = function frame(view) {
             if (view.clear) view.clear();
             if (view.draw) view.draw();
-
-            if (g.debug) {
-                if (view.beginFill) {
-                    view.beginFill(0, 0);
-                    view.lineStyle(1, 0xffffff, 1);
-                    view.drawRect(-view.data.width / 2, -view.data.height / 2, view.data.width, view.data.height);
-                    view.endFill();
-                }
-            }
-
             if (view.children) {
                 var _iteratorNormalCompletion = true;
                 var _didIteratorError = false;
@@ -20631,6 +20621,13 @@ exports.default = CountLimiter;
                             throw _iteratorError;
                         }
                     }
+                }
+            }if (g.debug) {
+                if (view.beginFill) {
+                    view.beginFill(0, 0);
+                    view.lineStyle(1, 0xffffff, 1);
+                    view.drawRect(-view.data.width / 2, -view.data.height / 2, view.data.width, view.data.height);
+                    view.endFill();
                 }
             }
         };
@@ -41537,9 +41534,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(View, [{
             key: 'drawLine',
             value: function drawLine(x1, y1, x2, y2) {
-                var width = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 1;
-                var color = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0x000000;
-                var alpha = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 1;
+                var color = this.lineColor;
+                var alpha = this.lineAlpha;
+                var width = this.lineWidth;
 
                 this.lineStyle(0);
 
@@ -41573,10 +41570,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.lineTo(x1 - width / 2, y1 + width / 2);
                 this.lineTo(x1, y1);
                 this.endFill();
+
+                this.lineStyle(width, color, alpha);
             }
-        }, {
-            key: 'draw',
-            value: function draw() {}
         }, {
             key: 'show',
             value: function show(dn, tm) {
@@ -41740,7 +41736,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
             _this4.data.text = text || '';
 
-            _this4.view = new pixi.Text(_this4.text, new pixi.TextStyle({ fontWeight: '100' }));
+            _this4.view = new pixi.Text(_this4.text);
             _this4.addChild(_this4.view);
 
             _this4.data.onset('text', function (k, v) {
@@ -41750,6 +41746,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _this4.data.onset('align', function () {
                 return _this4.update();
             });
+            _this4.data.bindo(_this4.view.style, 'fontSize', function () {
+                return _this4.update();
+            });
+            _this4.data.bindo(_this4.view.style, 'fontWeight', function () {
+                return _this4.update();
+            });
+            _this4.data.bindo(_this4.view.style, 'fill');
             return _this4;
         }
 
@@ -41811,11 +41814,43 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(VPane, [{
             key: 'draw',
             value: function draw() {
-                if (null != this.data.color_bg) {
-                    this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-                    this.beginFill(this.data.color_bg, this.data.alpha_draw);
-                    this.drawRoundedRect(-this.data.width / 2 * this.data.scale_draw, -this.data.height / 2 * this.data.scale_draw, this.data.width * this.data.scale_draw, this.data.height * this.data.scale_draw, this.data.round * this.data.scale_draw);
-                    this.endFill();
+                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+                var color_bg = this.data.color_bg;
+                var alpha_draw = this.data.alpha_draw;
+                if (null == color_bg) {
+                    color_bg = 0x000000;
+                    alpha_draw = 0;
+                };
+                this.beginFill(color_bg, alpha_draw);
+                this.draw_shape();
+                this.endFill();
+
+                this.draw_post();
+            }
+        }, {
+            key: 'draw_shape',
+            value: function draw_shape() {
+                this.drawRoundedRect(-this.data.width / 2 * this.data.scale_draw, -this.data.height / 2 * this.data.scale_draw, this.data.width * this.data.scale_draw, this.data.height * this.data.scale_draw, this.data.round * this.data.scale_draw);
+            }
+        }, {
+            key: 'draw_post',
+            value: function draw_post() {
+                if (this.interactive) {
+                    var color_mask = undefined;
+                    switch (this.state) {
+                        case 'over':
+                            color_mask = this.data.color_mask_light;
+                            break;
+                        case 'down':
+                            color_mask = this.data.color_mask_dark;
+                            break;
+                    }
+                    if (undefined != color_mask) {
+                        this.lineStyle(this.data.border, color_mask, this.data.alpha_draw_mask);
+                        this.beginFill(color_mask, this.data.alpha_draw_mask);
+                        this.draw_shape();
+                        this.endFill();
+                    }
                 }
             }
         }]);
@@ -41837,14 +41872,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _this6.addChild(_this6.label);
 
             _this6.data.bindo(_this6.label.data, 'text');
-            _this6.data.onset('width', function (k, v) {
-                //  this.width  = v;
-                _this6.label.update();
-            });
             _this6.data.onset('height', function (k, v) {
-                //  this.height = v;
-                _this6.label.view.style.fontSize = v * 3 / 5;
-                _this6.label.update();
+                _this6.label.data.fontSize = v * 3 / 5;
             });
             return _this6;
         }
@@ -41888,27 +41917,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.on('pointerup', action);
                 return this;
             }
-        }, {
-            key: 'draw',
-            value: function draw() {
-                _get(VButton.prototype.__proto__ || Object.getPrototypeOf(VButton.prototype), 'draw', this).call(this);
-
-                var color_mask = undefined;
-                switch (this.state) {
-                    case 'over':
-                        color_mask = 0xffffff;
-                        break;
-                    case 'down':
-                        color_mask = 0x000000;
-                        break;
-                }
-                if (undefined != color_mask) {
-                    this.lineStyle(0);
-                    this.beginFill(color_mask, 0.2);
-                    this.drawRoundedRect(-this.data.width / 2 * this.data.scale_draw, -this.data.height / 2 * this.data.scale_draw, this.data.width * this.data.scale_draw, this.data.height * this.data.scale_draw, this.data.round);
-                    this.endFill();
-                }
-            }
         }]);
 
         return VButton;
@@ -41920,11 +41928,15 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VDialog() {
             _classCallCheck(this, VDialog);
 
+            // this.mask   = new VPane();
+            // this.mask.data.alpha_draw   = 0.01;
+            // this.mask.data.color_bg     = 0x000000;
+            // this.mask.data.width    = g.screen.width;
+            // this.mask.data.height   = g.screen.height;
+            // this.mask.interactive   = true;
             var _this7 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
 
             _this7.buttons = {};
-
-            _this7.interactive = true;
             return _this7;
         }
 
@@ -41962,6 +41974,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
             key: 'show',
             value: function show(dn) {
+                // g.app.stage.addChild(this.mask);
                 g.app.stage.addChild(this);
                 _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn, 500);
             }
@@ -41972,6 +41985,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
                 _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'hide', this).call(this, function () {
                     _this8.parent.removeChild(_this8);
+                    // this.mask.parent.removeChild(this.mask);
                     if (dn) dn();
                 }, 500);
             }
@@ -41991,9 +42005,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             var create_resource = function create_resource(name, key, grid) {
                 var icon = new VButton(name).style_icon_small();
                 var label = new VLabel('0').align_left();
-                label.view.style.fill = 'white';
-                label.view.style.fontSize *= 0.5;
-                label.update();
+                label.data.fill = 'white';
 
                 var padding = (_this9.data.height - icon.data.height) / 2;
                 icon.data.x = grid.x - grid.w / 2 + padding + icon.data.width / 2;
@@ -42048,24 +42060,23 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             var _this12 = _possibleConstructorReturn(this, (VMapPlace.__proto__ || Object.getPrototypeOf(VMapPlace)).call(this));
 
             _this12.region = region;
+
             _this12.auto_interactive_scale(1.5);
             return _this12;
         }
 
         _createClass(VMapPlace, [{
-            key: 'draw',
-            value: function draw() {
-                if (null != this.data.color_bg) {
-                    var grid_width = this.region.data.width / this.region.data.col;
-                    var grid_height = this.region.data.height / this.region.data.row;
-                    this.data.x = -this.region.data.width / 2 + (this.data.grid.c + this.data.grid.x) * grid_width;
-                    this.data.y = -this.region.data.height / 2 + (this.data.grid.r + this.data.grid.y) * grid_height;
-
-                    this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-                    this.beginFill(this.data.color_bg, this.data.alpha_draw);
-                    this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
-                    this.endFill();
-                }
+            key: 'draw_shape',
+            value: function draw_shape() {
+                this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+            }
+        }, {
+            key: 'update',
+            value: function update() {
+                var grid_width = this.region.data.width / this.region.data.col;
+                var grid_height = this.region.data.height / this.region.data.row;
+                this.data.x = -this.region.data.width / 2 + (this.data.grid.c + this.data.grid.x) * grid_width;
+                this.data.y = -this.region.data.height / 2 + (this.data.grid.r + this.data.grid.y) * grid_height;
             }
         }]);
 
@@ -42092,13 +42103,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                     var row = _step3.value;
 
                     var r = [];
-                    var _iteratorNormalCompletion4 = true;
-                    var _didIteratorError4 = false;
-                    var _iteratorError4 = undefined;
+                    var _iteratorNormalCompletion6 = true;
+                    var _didIteratorError6 = false;
+                    var _iteratorError6 = undefined;
 
                     try {
-                        for (var _iterator4 = row[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                            var p = _step4.value;
+                        for (var _iterator6 = row[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                            var p = _step6.value;
 
                             var v = new VMapPlace(_this13);
                             Object.assign(v.data, p);
@@ -42106,16 +42117,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                             _this13.addChild(v);
                         }
                     } catch (err) {
-                        _didIteratorError4 = true;
-                        _iteratorError4 = err;
+                        _didIteratorError6 = true;
+                        _iteratorError6 = err;
                     } finally {
                         try {
-                            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                                _iterator4.return();
+                            if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                                _iterator6.return();
                             }
                         } finally {
-                            if (_didIteratorError4) {
-                                throw _iteratorError4;
+                            if (_didIteratorError6) {
+                                throw _iteratorError6;
                             }
                         }
                     }
@@ -42137,6 +42148,57 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 }
             }
 
+            var update = function update() {
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                    for (var _iterator4 = _this13.place[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var row = _step4.value;
+                        var _iteratorNormalCompletion5 = true;
+                        var _didIteratorError5 = false;
+                        var _iteratorError5 = undefined;
+
+                        try {
+                            for (var _iterator5 = row[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                                var p = _step5.value;
+
+                                p.update();
+                            }
+                        } catch (err) {
+                            _didIteratorError5 = true;
+                            _iteratorError5 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                                    _iterator5.return();
+                                }
+                            } finally {
+                                if (_didIteratorError5) {
+                                    throw _iteratorError5;
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
+                        }
+                    } finally {
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
+                        }
+                    }
+                }
+            };
+
+            _this13.data.onset('width', update);
+            _this13.data.onset('height', update);
             return _this13;
         }
 
@@ -42154,65 +42216,65 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.data.tween('scale', 0.5, dn, tm);
             }
         }, {
-            key: 'draw',
-            value: function draw() {
+            key: 'draw_shape',
+            value: function draw_shape() {
                 var _this14 = this;
 
                 var draw_place_line = function draw_place_line(p1) {
                     if (p1.data.grid.c < _this14.place[p1.data.grid.r].length - 1) {
                         // line right
                         var p2 = _this14.place[p1.data.grid.r][p1.data.grid.c + 1];
-                        _this14.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y, 1, _this14.data.color_bd, _this14.data.alpha_draw);
+                        _this14.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
                     }
                     if (p1.data.grid.r < _this14.place.length - 1) {
                         // line down
                         var _p = _this14.place[p1.data.grid.r + 1][p1.data.grid.c];
-                        _this14.drawLine(p1.data.x, p1.data.y, _p.data.x, _p.data.y, 1, _this14.data.color_bd, _this14.data.alpha_draw);
+                        _this14.drawLine(p1.data.x, p1.data.y, _p.data.x, _p.data.y);
                     }
                 };
-                var _iteratorNormalCompletion5 = true;
-                var _didIteratorError5 = false;
-                var _iteratorError5 = undefined;
+                var _iteratorNormalCompletion7 = true;
+                var _didIteratorError7 = false;
+                var _iteratorError7 = undefined;
 
                 try {
-                    for (var _iterator5 = this.place[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                        var row = _step5.value;
-                        var _iteratorNormalCompletion6 = true;
-                        var _didIteratorError6 = false;
-                        var _iteratorError6 = undefined;
+                    for (var _iterator7 = this.place[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                        var row = _step7.value;
+                        var _iteratorNormalCompletion8 = true;
+                        var _didIteratorError8 = false;
+                        var _iteratorError8 = undefined;
 
                         try {
-                            for (var _iterator6 = row[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                                var p = _step6.value;
+                            for (var _iterator8 = row[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+                                var p = _step8.value;
 
                                 draw_place_line(p);
                             }
                         } catch (err) {
-                            _didIteratorError6 = true;
-                            _iteratorError6 = err;
+                            _didIteratorError8 = true;
+                            _iteratorError8 = err;
                         } finally {
                             try {
-                                if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                                    _iterator6.return();
+                                if (!_iteratorNormalCompletion8 && _iterator8.return) {
+                                    _iterator8.return();
                                 }
                             } finally {
-                                if (_didIteratorError6) {
-                                    throw _iteratorError6;
+                                if (_didIteratorError8) {
+                                    throw _iteratorError8;
                                 }
                             }
                         }
                     }
                 } catch (err) {
-                    _didIteratorError5 = true;
-                    _iteratorError5 = err;
+                    _didIteratorError7 = true;
+                    _iteratorError7 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                            _iterator5.return();
+                        if (!_iteratorNormalCompletion7 && _iterator7.return) {
+                            _iterator7.return();
                         }
                     } finally {
-                        if (_didIteratorError5) {
-                            throw _iteratorError5;
+                        if (_didIteratorError7) {
+                            throw _iteratorError7;
                         }
                     }
                 }
@@ -42229,8 +42291,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _classCallCheck(this, VMapWorld);
 
             var _this15 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
-
-            _this15.data.color_bg = 0xff0000;
 
             _this15.region = null;
             _this15.next();
@@ -42548,11 +42608,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             this.y = 0;
             this.width = 1;
             this.height = 1;
-            this.visible = true;
             this.scale = 1;
-            this.scale_draw = 1;
             this.alpha = 1;
-            this.alpha_draw = 1;
+            this.visible = true;
         }
         /**
          * 缓动动画。
@@ -42666,6 +42724,10 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
             _this2.text = '';
             _this2.align = 'center';
+
+            _this2.fontSize = 14;
+            _this2.fontWeight = 100;
+            _this2.fill = '#333333';
             return _this2;
         }
 
@@ -42697,10 +42759,15 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
             var _this3 = _possibleConstructorReturn(this, (DPane.__proto__ || Object.getPrototypeOf(DPane)).call(this));
 
-            _this3.round = 6;
+            _this3.round = 1;
             _this3.border = 2;
+            _this3.scale_draw = 1;
+            _this3.alpha_draw = 1;
+            _this3.alpha_draw_mask = 0.2;
             _this3.color_bg = null;
             _this3.color_bd = 0xcccccc;
+            _this3.color_mask_light = 0xffffff;
+            _this3.color_mask_dark = 0x000000;
             return _this3;
         }
 
@@ -42715,6 +42782,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
             var _this4 = _possibleConstructorReturn(this, (DButton.__proto__ || Object.getPrototypeOf(DButton)).call(this));
 
+            _this4.round = 6;
             _this4.border = 1;
             _this4.color_bg = 0x888888;
 
@@ -42842,7 +42910,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             var _this9 = _possibleConstructorReturn(this, (DMapPlace.__proto__ || Object.getPrototypeOf(DMapPlace)).call(this));
 
             _this9.border = 1;
-            _this9.color_bg = _this9.color_bd;
+            _this9.color_bg = 0x888888;
 
             _this9.grid = {
                 r: 0,
@@ -42866,7 +42934,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             var _this10 = _possibleConstructorReturn(this, (DMapRegion.__proto__ || Object.getPrototypeOf(DMapRegion)).call(this));
 
             _this10.border = 1;
-            _this10.color_bg = _this10.color_bd;
 
             _this10.level = 0;
             _this10.row = 0;
@@ -42915,6 +42982,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             var _this11 = _possibleConstructorReturn(this, (DMapWorld.__proto__ || Object.getPrototypeOf(DMapWorld)).call(this));
 
             _this11.border = 1;
+            _this11.color_bg = 0xff0000;
 
             _this11.level = 0;
             return _this11;
