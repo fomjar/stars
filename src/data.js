@@ -312,6 +312,18 @@
             this.height     = 24;
         }
     }
+    class DShadow extends DPane {
+        constructor () {
+            super();
+            this.width  = g.screen.width;
+            this.height = g.screen.height;
+            this.x      = this.width / 2;
+            this.y      = this.height / 2;
+            this.border     = 0;
+            this.color_bg   = 0x000000;
+            this.alpha_draw = 0.01;
+        }
+    }
     class DDialog extends DPane {
         constructor () {
             super();
@@ -434,6 +446,7 @@
         DLabel,
         DPane,
         DButton,
+        DShadow,
         DDialog,
         DPaneResource,
         DPaneOperate,

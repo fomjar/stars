@@ -18,7 +18,10 @@
             };
             find_data(Object.getPrototypeOf(this));
 
-            this.state  = 'normal';    // normal / over / down
+            this.state      = 'normal';    // normal / over / down
+            this.onnormal   = [];
+            this.onover     = [];
+            this.ondown     = [];
             
             this.data.bindo(this.position, 'x');
             this.data.bindo(this.position, 'y');
@@ -30,6 +33,15 @@
                 this.scale.y = v;
             });
             this.data.bindo(this, 'visible');
+
+            data.onset(this, 'state', (k, v) => {
+                switch (v) {
+                case 'normal': for (let on of this.onnormal) on(); break;
+                case 'over'  : for (let on of this.onover)   on(); break;
+                case 'down'  : for (let on of this.ondown)   on(); break;
+                }
+            });
+            this.auto_interactive();
         }
         
         draw () {
@@ -41,30 +53,32 @@
                 alpha_draw = 0;
             };
             this.beginFill(color_bg, alpha_draw);
-            this.draw_shape();
+            this.draw_back();
             this.endFill();
 
-            this.draw_post();
+            this.draw_fore();
+
+            this.draw_mask();
         }
 
-        draw_shape () {}
+        draw_back () {}
 
-        draw_post () {
-            if (this.interactive) {
-                let color_mask = this.data.color_mask_light;
-                switch (this.state) {
-                    case 'over':
-                        color_mask = this.data.color_mask_light;
-                        break;
-                    case 'down':
-                        color_mask = this.data.color_mask_dark;
-                        break;
-                }
-                this.lineStyle(this.data.border, color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
-                this.beginFill(color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
-                this.draw_shape();
-                this.endFill();
+        draw_fore () {};
+
+        draw_mask () {
+            let color_mask = this.data.color_mask_light;
+            switch (this.state) {
+                case 'over':
+                    color_mask = this.data.color_mask_light;
+                    break;
+                case 'down':
+                    color_mask = this.data.color_mask_dark;
+                    break;
             }
+            this.lineStyle(this.data.border, color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+            this.beginFill(color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+            this.draw_back();
+            this.endFill();
         }
 
         drawLine(x1, y1, x2, y2) {
@@ -148,55 +162,38 @@
             return this;
         }
 
-        auto_interactive (
-            norm    = () => {},
-            over    = () => {},
-            down    = () => {},
-        ) {
+        auto_interactive () {
             this.interactive    = true;
             
-            this.removeAllListeners('pointerover');
-            this.removeAllListeners('pointerout');
-            this.removeAllListeners('pointerdown');
-            this.removeAllListeners('pointerup');
-            this.removeAllListeners('pointerupoutside');
-            
-            this.on('pointerover', () => {
-                this.layer_top();
-                this.state = 'over';
-                this.data.tween('alpha_draw_mask', 0.2);
-                over();
-            });
-            this.on('pointerout', () => {
-                this.state = 'normal';
-                this.data.tween('alpha_draw_mask', 0);
-                norm();
-            });
-            this.on('pointerdown', () => {
-                this.layer_top();
-                this.state = 'down';
-                this.data.tween('alpha_draw_mask', 0.2);
-                down();
-            });
-            this.on('pointerup', () => {
-                this.layer_top();
-                this.state = 'over';
-                this.data.tween('alpha_draw_mask', 0.2);
-                over();
-            });
-            this.on('pointerupoutside', () => {
-                this.state = 'normal';
-                this.data.tween('alpha_draw_mask', 0);
-                norm();
-            });
+            this.on('pointerover',      () => this.state = 'over');
+            this.on('pointerout',       () => this.state = 'normal');
+            this.on('pointerdown',      () => this.state = 'down');
+            this.on('pointerup',        () => this.state = 'over');
+            this.on('pointerupoutside', () => this.state = 'normal');
+
+            return this;
+        }
+
+        auto_interactive_mask (alpha = 0.2) {
+            this.onnormal.push(() => this.data.tween('alpha_draw_mask', 0));
+            this.onover.push(() => this.data.tween('alpha_draw_mask', alpha));
+            this.ondown.push(() => this.data.tween('alpha_draw_mask', alpha));
+
+            return this;
         }
 
         auto_interactive_scale (scale = 1.05) {
-            this.auto_interactive(
-                () => this.data.tween('scale', 1),
-                () => this.data.tween('scale', scale),
-                () => this.data.tween('scale', 1),
-            );
+            this.onnormal.push(() => this.data.tween('scale', 1));
+            this.onover.push(() => this.data.tween('scale', scale));
+            this.ondown.push(() => this.data.tween('scale', 1));
+
+            return this;
+        }
+
+        auto_interactive_layer () {
+            this.onover.push(() => this.layer_top());
+
+            return this;
         }
     }
 
@@ -256,7 +253,7 @@
             super();
         }
 
-        draw_shape () {
+        draw_back () {
             this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
                                  - this.data.height / 2 * this.data.scale_draw,
                                  this.data.width * this.data.scale_draw,
@@ -277,24 +274,24 @@
             this.data.onset('height', (k, v) => {
                 this.label.data.fontSize    = v * 3 / 5;
             });
+
+            this.auto_interactive_mask();
+            this.auto_interactive_layer();
         }
         
         style_icon_small () {
             this.buttonMode = false;
             this.data.style_icon_small();
-            this.auto_interactive();
             return this;
         }
         style_icon_middle () {
             this.buttonMode = false;
             this.data.style_icon_middle();
-            this.auto_interactive();
             return this;
         }
         style_icon_large () {
             this.buttonMode = false;
             this.data.style_icon_large();
-            this.auto_interactive();
             return this;
         }
         style_primary () {
@@ -305,7 +302,6 @@
         }
 
         click (action) {
-            this.interactive = true;
             this.on('pointerup', action);
             return this;
         }
@@ -315,17 +311,10 @@
         constructor () {
             super();
 
-            this.data.color_bg     = 0x000000;
-            this.data.alpha_draw   = 0.01;
-            this.data.width     = g.screen.width;
-            this.data.height    = g.screen.height;
-            this.data.x         = this.data.width / 2;
-            this.data.y         = this.data.height / 2;
-            this.interactive    = true;
-            this.on('pointerover', () => false);
-            this.on('pointerout', () => false);
-            this.on('pointerdown', () => false);
-            this.on('pointerup', () => false);
+            this.on('pointerover',      () => false);
+            this.on('pointerout',       () => false);
+            this.on('pointerdown',      () => false);
+            this.on('pointerup',        () => false);
             this.on('pointerupoutside', () => false);
         }
     }
@@ -434,11 +423,31 @@
             super();
             this.region = region;
 
+            this.auto_interactive_mask();
             this.auto_interactive_scale(1.5);
         }
 
-        draw_shape () {
+        draw_back () {
             this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+        }
+
+        draw_fore () {
+            switch (this.data.type) {
+            case 'normal':
+                break;
+            case 'entrance':
+                this.lineStyle(this.data.border * 2, 0x00ff00, this.data.alpha_draw);
+                this.beginFill(0x000000, 0);
+                this.drawCircle(0, 0, this.data.radius / 2);
+                this.endFill();
+                break;
+            case 'exit':
+                this.lineStyle(this.data.border * 2, 0x0000ff, this.data.alpha_draw);
+                this.beginFill(0x000000, 0);
+                this.drawCircle(0, 0, this.data.radius / 2);
+                this.endFill();
+                break;
+            }
         }
 
         update () {
@@ -494,7 +503,7 @@
             this.data.tween('scale', 0.5, dn, tm);
         }
 
-        draw_shape () {
+        draw_back () {
             let draw_place_line = (p1) => {
                 if (p1.data.grid.c < this.places[p1.data.grid.r].length - 1) { // line right
                     let p2 = this.places[p1.data.grid.r][p1.data.grid.c + 1];

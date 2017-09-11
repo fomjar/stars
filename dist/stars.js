@@ -41517,6 +41517,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             find_data(Object.getPrototypeOf(_this));
 
             _this.state = 'normal'; // normal / over / down
+            _this.onnormal = [];
+            _this.onover = [];
+            _this.ondown = [];
 
             _this.data.bindo(_this.position, 'x');
             _this.data.bindo(_this.position, 'y');
@@ -41528,6 +41531,90 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 _this.scale.y = v;
             });
             _this.data.bindo(_this, 'visible');
+
+            data.onset(_this, 'state', function (k, v) {
+                switch (v) {
+                    case 'normal':
+                        var _iteratorNormalCompletion = true;
+                        var _didIteratorError = false;
+                        var _iteratorError = undefined;
+
+                        try {
+                            for (var _iterator = _this.onnormal[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                                var on = _step.value;
+                                on();
+                            }
+                        } catch (err) {
+                            _didIteratorError = true;
+                            _iteratorError = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion && _iterator.return) {
+                                    _iterator.return();
+                                }
+                            } finally {
+                                if (_didIteratorError) {
+                                    throw _iteratorError;
+                                }
+                            }
+                        }
+
+                        break;
+                    case 'over':
+                        var _iteratorNormalCompletion2 = true;
+                        var _didIteratorError2 = false;
+                        var _iteratorError2 = undefined;
+
+                        try {
+                            for (var _iterator2 = _this.onover[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                                var _on = _step2.value;
+                                _on();
+                            }
+                        } catch (err) {
+                            _didIteratorError2 = true;
+                            _iteratorError2 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                                    _iterator2.return();
+                                }
+                            } finally {
+                                if (_didIteratorError2) {
+                                    throw _iteratorError2;
+                                }
+                            }
+                        }
+
+                        break;
+                    case 'down':
+                        var _iteratorNormalCompletion3 = true;
+                        var _didIteratorError3 = false;
+                        var _iteratorError3 = undefined;
+
+                        try {
+                            for (var _iterator3 = _this.ondown[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                                var _on2 = _step3.value;
+                                _on2();
+                            }
+                        } catch (err) {
+                            _didIteratorError3 = true;
+                            _iteratorError3 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                                    _iterator3.return();
+                                }
+                            } finally {
+                                if (_didIteratorError3) {
+                                    throw _iteratorError3;
+                                }
+                            }
+                        }
+
+                        break;
+                }
+            });
+            _this.auto_interactive();
             return _this;
         }
 
@@ -41542,32 +41629,35 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                     alpha_draw = 0;
                 };
                 this.beginFill(color_bg, alpha_draw);
-                this.draw_shape();
+                this.draw_back();
                 this.endFill();
 
-                this.draw_post();
+                this.draw_fore();
+
+                this.draw_mask();
             }
         }, {
-            key: 'draw_shape',
-            value: function draw_shape() {}
+            key: 'draw_back',
+            value: function draw_back() {}
         }, {
-            key: 'draw_post',
-            value: function draw_post() {
-                if (this.interactive) {
-                    var color_mask = this.data.color_mask_light;
-                    switch (this.state) {
-                        case 'over':
-                            color_mask = this.data.color_mask_light;
-                            break;
-                        case 'down':
-                            color_mask = this.data.color_mask_dark;
-                            break;
-                    }
-                    this.lineStyle(this.data.border, color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
-                    this.beginFill(color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
-                    this.draw_shape();
-                    this.endFill();
+            key: 'draw_fore',
+            value: function draw_fore() {}
+        }, {
+            key: 'draw_mask',
+            value: function draw_mask() {
+                var color_mask = this.data.color_mask_light;
+                switch (this.state) {
+                    case 'over':
+                        color_mask = this.data.color_mask_light;
+                        break;
+                    case 'down':
+                        color_mask = this.data.color_mask_dark;
+                        break;
                 }
+                this.lineStyle(this.data.border, color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+                this.beginFill(color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+                this.draw_back();
+                this.endFill();
             }
         }, {
             key: 'drawLine',
@@ -41615,28 +41705,28 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             key: 'show',
             value: function show(dn, tm) {
                 dn = tm = undefined;
-                var _iteratorNormalCompletion = true;
-                var _didIteratorError = false;
-                var _iteratorError = undefined;
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
 
                 try {
-                    for (var _iterator = arguments[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                        var arg = _step.value;
+                    for (var _iterator4 = arguments[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var arg = _step4.value;
 
                         if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'function')) dn = arg;
                         if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'number')) tm = arg;
                     }
                 } catch (err) {
-                    _didIteratorError = true;
-                    _iteratorError = err;
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion && _iterator.return) {
-                            _iterator.return();
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
                         }
                     } finally {
-                        if (_didIteratorError) {
-                            throw _iteratorError;
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
                         }
                     }
                 }
@@ -41650,28 +41740,28 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             key: 'hide',
             value: function hide(dn, tm) {
                 dn = tm = undefined;
-                var _iteratorNormalCompletion2 = true;
-                var _didIteratorError2 = false;
-                var _iteratorError2 = undefined;
+                var _iteratorNormalCompletion5 = true;
+                var _didIteratorError5 = false;
+                var _iteratorError5 = undefined;
 
                 try {
-                    for (var _iterator2 = arguments[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                        var arg = _step2.value;
+                    for (var _iterator5 = arguments[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+                        var arg = _step5.value;
 
                         if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'function')) dn = arg;
                         if (Object.is(typeof arg === 'undefined' ? 'undefined' : _typeof(arg), 'number')) tm = arg;
                     }
                 } catch (err) {
-                    _didIteratorError2 = true;
-                    _iteratorError2 = err;
+                    _didIteratorError5 = true;
+                    _iteratorError5 = err;
                 } finally {
                     try {
-                        if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                            _iterator2.return();
+                        if (!_iteratorNormalCompletion5 && _iterator5.return) {
+                            _iterator5.return();
                         }
                     } finally {
-                        if (_didIteratorError2) {
-                            throw _iteratorError2;
+                        if (_didIteratorError5) {
+                            throw _iteratorError5;
                         }
                     }
                 }
@@ -41705,64 +41795,76 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
             key: 'auto_interactive',
             value: function auto_interactive() {
-                var norm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
-
                 var _this2 = this;
-
-                var over = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {};
-                var down = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {};
 
                 this.interactive = true;
 
-                this.removeAllListeners('pointerover');
-                this.removeAllListeners('pointerout');
-                this.removeAllListeners('pointerdown');
-                this.removeAllListeners('pointerup');
-                this.removeAllListeners('pointerupoutside');
-
                 this.on('pointerover', function () {
-                    _this2.layer_top();
-                    _this2.state = 'over';
-                    _this2.data.tween('alpha_draw_mask', 0.2);
-                    over();
+                    return _this2.state = 'over';
                 });
                 this.on('pointerout', function () {
-                    _this2.state = 'normal';
-                    _this2.data.tween('alpha_draw_mask', 0);
-                    norm();
+                    return _this2.state = 'normal';
                 });
                 this.on('pointerdown', function () {
-                    _this2.layer_top();
-                    _this2.state = 'down';
-                    _this2.data.tween('alpha_draw_mask', 0.2);
-                    down();
+                    return _this2.state = 'down';
                 });
                 this.on('pointerup', function () {
-                    _this2.layer_top();
-                    _this2.state = 'over';
-                    _this2.data.tween('alpha_draw_mask', 0.2);
-                    over();
+                    return _this2.state = 'over';
                 });
                 this.on('pointerupoutside', function () {
-                    _this2.state = 'normal';
-                    _this2.data.tween('alpha_draw_mask', 0);
-                    norm();
+                    return _this2.state = 'normal';
                 });
+
+                return this;
+            }
+        }, {
+            key: 'auto_interactive_mask',
+            value: function auto_interactive_mask() {
+                var _this3 = this;
+
+                var alpha = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0.2;
+
+                this.onnormal.push(function () {
+                    return _this3.data.tween('alpha_draw_mask', 0);
+                });
+                this.onover.push(function () {
+                    return _this3.data.tween('alpha_draw_mask', alpha);
+                });
+                this.ondown.push(function () {
+                    return _this3.data.tween('alpha_draw_mask', alpha);
+                });
+
+                return this;
             }
         }, {
             key: 'auto_interactive_scale',
             value: function auto_interactive_scale() {
-                var _this3 = this;
+                var _this4 = this;
 
                 var scale = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.05;
 
-                this.auto_interactive(function () {
-                    return _this3.data.tween('scale', 1);
-                }, function () {
-                    return _this3.data.tween('scale', scale);
-                }, function () {
-                    return _this3.data.tween('scale', 1);
+                this.onnormal.push(function () {
+                    return _this4.data.tween('scale', 1);
                 });
+                this.onover.push(function () {
+                    return _this4.data.tween('scale', scale);
+                });
+                this.ondown.push(function () {
+                    return _this4.data.tween('scale', 1);
+                });
+
+                return this;
+            }
+        }, {
+            key: 'auto_interactive_layer',
+            value: function auto_interactive_layer() {
+                var _this5 = this;
+
+                this.onover.push(function () {
+                    return _this5.layer_top();
+                });
+
+                return this;
             }
         }]);
 
@@ -41775,28 +41877,28 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VLabel(text) {
             _classCallCheck(this, VLabel);
 
-            var _this4 = _possibleConstructorReturn(this, (VLabel.__proto__ || Object.getPrototypeOf(VLabel)).call(this));
+            var _this6 = _possibleConstructorReturn(this, (VLabel.__proto__ || Object.getPrototypeOf(VLabel)).call(this));
 
-            _this4.data.text = text || '';
+            _this6.data.text = text || '';
 
-            _this4.view = new pixi.Text(_this4.text);
-            _this4.addChild(_this4.view);
+            _this6.view = new pixi.Text(_this6.text);
+            _this6.addChild(_this6.view);
 
-            _this4.data.onset('text', function (k, v) {
-                _this4.view.text = v;
-                _this4.update();
+            _this6.data.onset('text', function (k, v) {
+                _this6.view.text = v;
+                _this6.update();
             });
-            _this4.data.onset('align', function () {
-                return _this4.update();
+            _this6.data.onset('align', function () {
+                return _this6.update();
             });
-            _this4.data.bindo(_this4.view.style, 'fontSize', function () {
-                return _this4.update();
+            _this6.data.bindo(_this6.view.style, 'fontSize', function () {
+                return _this6.update();
             });
-            _this4.data.bindo(_this4.view.style, 'fontWeight', function () {
-                return _this4.update();
+            _this6.data.bindo(_this6.view.style, 'fontWeight', function () {
+                return _this6.update();
             });
-            _this4.data.bindo(_this4.view.style, 'fill');
-            return _this4;
+            _this6.data.bindo(_this6.view.style, 'fill');
+            return _this6;
         }
 
         _createClass(VLabel, [{
@@ -41850,8 +41952,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }
 
         _createClass(VPane, [{
-            key: 'draw_shape',
-            value: function draw_shape() {
+            key: 'draw_back',
+            value: function draw_back() {
                 this.drawRoundedRect(-this.data.width / 2 * this.data.scale_draw, -this.data.height / 2 * this.data.scale_draw, this.data.width * this.data.scale_draw, this.data.height * this.data.scale_draw, this.data.round * this.data.scale_draw);
             }
         }]);
@@ -41865,18 +41967,21 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VButton(text) {
             _classCallCheck(this, VButton);
 
-            var _this6 = _possibleConstructorReturn(this, (VButton.__proto__ || Object.getPrototypeOf(VButton)).call(this));
+            var _this8 = _possibleConstructorReturn(this, (VButton.__proto__ || Object.getPrototypeOf(VButton)).call(this));
 
-            _this6.data.text = text || '';
+            _this8.data.text = text || '';
 
-            _this6.label = new VLabel();
-            _this6.addChild(_this6.label);
+            _this8.label = new VLabel();
+            _this8.addChild(_this8.label);
 
-            _this6.data.bindo(_this6.label.data, 'text');
-            _this6.data.onset('height', function (k, v) {
-                _this6.label.data.fontSize = v * 3 / 5;
+            _this8.data.bindo(_this8.label.data, 'text');
+            _this8.data.onset('height', function (k, v) {
+                _this8.label.data.fontSize = v * 3 / 5;
             });
-            return _this6;
+
+            _this8.auto_interactive_mask();
+            _this8.auto_interactive_layer();
+            return _this8;
         }
 
         _createClass(VButton, [{
@@ -41884,7 +41989,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function style_icon_small() {
                 this.buttonMode = false;
                 this.data.style_icon_small();
-                this.auto_interactive();
                 return this;
             }
         }, {
@@ -41892,7 +41996,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function style_icon_middle() {
                 this.buttonMode = false;
                 this.data.style_icon_middle();
-                this.auto_interactive();
                 return this;
             }
         }, {
@@ -41900,7 +42003,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function style_icon_large() {
                 this.buttonMode = false;
                 this.data.style_icon_large();
-                this.auto_interactive();
                 return this;
             }
         }, {
@@ -41914,7 +42016,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
             key: 'click',
             value: function click(action) {
-                this.interactive = true;
                 this.on('pointerup', action);
                 return this;
             }
@@ -41929,31 +42030,24 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VShadow() {
             _classCallCheck(this, VShadow);
 
-            var _this7 = _possibleConstructorReturn(this, (VShadow.__proto__ || Object.getPrototypeOf(VShadow)).call(this));
+            var _this9 = _possibleConstructorReturn(this, (VShadow.__proto__ || Object.getPrototypeOf(VShadow)).call(this));
 
-            _this7.data.color_bg = 0x000000;
-            _this7.data.alpha_draw = 0.01;
-            _this7.data.width = g.screen.width;
-            _this7.data.height = g.screen.height;
-            _this7.data.x = _this7.data.width / 2;
-            _this7.data.y = _this7.data.height / 2;
-            _this7.interactive = true;
-            _this7.on('pointerover', function () {
+            _this9.on('pointerover', function () {
                 return false;
             });
-            _this7.on('pointerout', function () {
+            _this9.on('pointerout', function () {
                 return false;
             });
-            _this7.on('pointerdown', function () {
+            _this9.on('pointerdown', function () {
                 return false;
             });
-            _this7.on('pointerup', function () {
+            _this9.on('pointerup', function () {
                 return false;
             });
-            _this7.on('pointerupoutside', function () {
+            _this9.on('pointerupoutside', function () {
                 return false;
             });
-            return _this7;
+            return _this9;
         }
 
         return VShadow;
@@ -41965,11 +42059,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VDialog() {
             _classCallCheck(this, VDialog);
 
-            var _this8 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
+            var _this10 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
 
-            _this8.shadow = new VShadow();
-            _this8.buttons = {};
-            return _this8;
+            _this10.shadow = new VShadow();
+            _this10.buttons = {};
+            return _this10;
         }
 
         _createClass(VDialog, [{
@@ -42013,11 +42107,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
             key: 'hide',
             value: function hide(dn) {
-                var _this9 = this;
+                var _this11 = this;
 
                 _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'hide', this).call(this, function () {
-                    _this9.parent.removeChild(_this9);
-                    _this9.shadow.parent.removeChild(_this9.shadow);
+                    _this11.parent.removeChild(_this11);
+                    _this11.shadow.parent.removeChild(_this11.shadow);
                     if (dn) dn();
                 }, 500);
             }
@@ -42032,25 +42126,25 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VPaneResource() {
             _classCallCheck(this, VPaneResource);
 
-            var _this10 = _possibleConstructorReturn(this, (VPaneResource.__proto__ || Object.getPrototypeOf(VPaneResource)).call(this));
+            var _this12 = _possibleConstructorReturn(this, (VPaneResource.__proto__ || Object.getPrototypeOf(VPaneResource)).call(this));
 
             var create_resource = function create_resource(name, key, grid) {
                 var icon = new VButton(name).style_icon_small();
                 var label = new VLabel('0').align_left();
                 label.data.fill = 'white';
 
-                var padding = (_this10.data.height - icon.data.height) / 2;
+                var padding = (_this12.data.height - icon.data.height) / 2;
                 icon.data.x = grid.x - grid.w / 2 + padding + icon.data.width / 2;
                 label.data.x = grid.x - grid.w / 2 + padding * 1.5 + icon.data.width;
 
-                _this10.addChild(icon);
-                _this10.addChild(label);
+                _this12.addChild(icon);
+                _this12.addChild(label);
             };
 
-            create_resource('炭', 'C14', _this10.data.grid[0]);
-            create_resource('钛', 'Ti', _this10.data.grid[1]);
-            create_resource('钚', 'Pu238', _this10.data.grid[2]);
-            return _this10;
+            create_resource('炭', 'C14', _this12.data.grid[0]);
+            create_resource('钛', 'Ti', _this12.data.grid[1]);
+            create_resource('钚', 'Pu238', _this12.data.grid[2]);
+            return _this12;
         }
 
         return VPaneResource;
@@ -42062,10 +42156,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VPaneOperate() {
             _classCallCheck(this, VPaneOperate);
 
-            var _this11 = _possibleConstructorReturn(this, (VPaneOperate.__proto__ || Object.getPrototypeOf(VPaneOperate)).call(this));
+            var _this13 = _possibleConstructorReturn(this, (VPaneOperate.__proto__ || Object.getPrototypeOf(VPaneOperate)).call(this));
 
-            _this11.addChild(_this11.btn = new VButton('结束本轮').style_primary());
-            return _this11;
+            _this13.addChild(_this13.btn = new VButton('结束本轮').style_primary());
+            return _this13;
         }
 
         return VPaneOperate;
@@ -42089,18 +42183,39 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VMapPlace(region) {
             _classCallCheck(this, VMapPlace);
 
-            var _this13 = _possibleConstructorReturn(this, (VMapPlace.__proto__ || Object.getPrototypeOf(VMapPlace)).call(this));
+            var _this15 = _possibleConstructorReturn(this, (VMapPlace.__proto__ || Object.getPrototypeOf(VMapPlace)).call(this));
 
-            _this13.region = region;
+            _this15.region = region;
 
-            _this13.auto_interactive_scale(1.5);
-            return _this13;
+            _this15.auto_interactive_mask();
+            _this15.auto_interactive_scale(1.5);
+            return _this15;
         }
 
         _createClass(VMapPlace, [{
-            key: 'draw_shape',
-            value: function draw_shape() {
+            key: 'draw_back',
+            value: function draw_back() {
                 this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+            }
+        }, {
+            key: 'draw_fore',
+            value: function draw_fore() {
+                switch (this.data.type) {
+                    case 'normal':
+                        break;
+                    case 'entrance':
+                        this.lineStyle(this.data.border * 2, 0x00ff00, this.data.alpha_draw);
+                        this.beginFill(0x000000, 0);
+                        this.drawCircle(0, 0, this.data.radius / 2);
+                        this.endFill();
+                        break;
+                    case 'exit':
+                        this.lineStyle(this.data.border * 2, 0x0000ff, this.data.alpha_draw);
+                        this.beginFill(0x000000, 0);
+                        this.drawCircle(0, 0, this.data.radius / 2);
+                        this.endFill();
+                        break;
+                }
             }
         }, {
             key: 'update',
@@ -42121,164 +42236,81 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VMapRegion(level) {
             _classCallCheck(this, VMapRegion);
 
-            var _this14 = _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
+            var _this16 = _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
 
-            _this14.places = [];
-            _this14.entrance = null;
-            _this14.exit = null;
+            _this16.places = [];
+            _this16.entrance = null;
+            _this16.exit = null;
 
-            var _this14$data$places = _this14.data.places(level),
-                places = _this14$data$places.places,
-                entrance = _this14$data$places.entrance,
-                exit = _this14$data$places.exit;
+            var _this16$data$places = _this16.data.places(level),
+                places = _this16$data$places.places,
+                entrance = _this16$data$places.entrance,
+                exit = _this16$data$places.exit;
 
-            var _iteratorNormalCompletion3 = true;
-            var _didIteratorError3 = false;
-            var _iteratorError3 = undefined;
+            var _iteratorNormalCompletion6 = true;
+            var _didIteratorError6 = false;
+            var _iteratorError6 = undefined;
 
             try {
-                for (var _iterator3 = places[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                    var row = _step3.value;
+                for (var _iterator6 = places[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+                    var row = _step6.value;
 
                     var r = [];
-                    var _iteratorNormalCompletion6 = true;
-                    var _didIteratorError6 = false;
-                    var _iteratorError6 = undefined;
+                    var _iteratorNormalCompletion9 = true;
+                    var _didIteratorError9 = false;
+                    var _iteratorError9 = undefined;
 
                     try {
-                        for (var _iterator6 = row[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-                            var p = _step6.value;
+                        for (var _iterator9 = row[Symbol.iterator](), _step9; !(_iteratorNormalCompletion9 = (_step9 = _iterator9.next()).done); _iteratorNormalCompletion9 = true) {
+                            var p = _step9.value;
 
-                            var v = new VMapPlace(_this14);
+                            var v = new VMapPlace(_this16);
                             Object.assign(v.data, p);
                             r.push(v);
-                            _this14.addChild(v);
+                            _this16.addChild(v);
                         }
                     } catch (err) {
-                        _didIteratorError6 = true;
-                        _iteratorError6 = err;
+                        _didIteratorError9 = true;
+                        _iteratorError9 = err;
                     } finally {
                         try {
-                            if (!_iteratorNormalCompletion6 && _iterator6.return) {
-                                _iterator6.return();
+                            if (!_iteratorNormalCompletion9 && _iterator9.return) {
+                                _iterator9.return();
                             }
                         } finally {
-                            if (_didIteratorError6) {
-                                throw _iteratorError6;
+                            if (_didIteratorError9) {
+                                throw _iteratorError9;
                             }
                         }
                     }
 
-                    _this14.places.push(r);
+                    _this16.places.push(r);
                 }
             } catch (err) {
-                _didIteratorError3 = true;
-                _iteratorError3 = err;
+                _didIteratorError6 = true;
+                _iteratorError6 = err;
             } finally {
                 try {
-                    if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                        _iterator3.return();
+                    if (!_iteratorNormalCompletion6 && _iterator6.return) {
+                        _iterator6.return();
                     }
                 } finally {
-                    if (_didIteratorError3) {
-                        throw _iteratorError3;
+                    if (_didIteratorError6) {
+                        throw _iteratorError6;
                     }
                 }
             }
 
-            _this14.entrance = _this14.places[entrance.grid.r][entrance.grid.c];
-            _this14.exit = _this14.places[exit.grid.r][exit.grid.c];
+            _this16.entrance = _this16.places[entrance.grid.r][entrance.grid.c];
+            _this16.exit = _this16.places[exit.grid.r][exit.grid.c];
 
             var update = function update() {
-                var _iteratorNormalCompletion4 = true;
-                var _didIteratorError4 = false;
-                var _iteratorError4 = undefined;
-
-                try {
-                    for (var _iterator4 = _this14.places[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-                        var row = _step4.value;
-                        var _iteratorNormalCompletion5 = true;
-                        var _didIteratorError5 = false;
-                        var _iteratorError5 = undefined;
-
-                        try {
-                            for (var _iterator5 = row[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-                                var p = _step5.value;
-
-                                p.update();
-                            }
-                        } catch (err) {
-                            _didIteratorError5 = true;
-                            _iteratorError5 = err;
-                        } finally {
-                            try {
-                                if (!_iteratorNormalCompletion5 && _iterator5.return) {
-                                    _iterator5.return();
-                                }
-                            } finally {
-                                if (_didIteratorError5) {
-                                    throw _iteratorError5;
-                                }
-                            }
-                        }
-                    }
-                } catch (err) {
-                    _didIteratorError4 = true;
-                    _iteratorError4 = err;
-                } finally {
-                    try {
-                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
-                            _iterator4.return();
-                        }
-                    } finally {
-                        if (_didIteratorError4) {
-                            throw _iteratorError4;
-                        }
-                    }
-                }
-            };
-
-            _this14.data.onset('width', update);
-            _this14.data.onset('height', update);
-            return _this14;
-        }
-
-        _createClass(VMapRegion, [{
-            key: 'show',
-            value: function show(dn, tm) {
-                this.data.scale = 0.5;
-                _get(VMapRegion.prototype.__proto__ || Object.getPrototypeOf(VMapRegion.prototype), 'show', this).call(this, tm);
-                this.data.tween('scale', 1, dn, tm);
-            }
-        }, {
-            key: 'hide',
-            value: function hide(dn, tm) {
-                _get(VMapRegion.prototype.__proto__ || Object.getPrototypeOf(VMapRegion.prototype), 'hide', this).call(this, tm);
-                this.data.tween('scale', 0.5, dn, tm);
-            }
-        }, {
-            key: 'draw_shape',
-            value: function draw_shape() {
-                var _this15 = this;
-
-                var draw_place_line = function draw_place_line(p1) {
-                    if (p1.data.grid.c < _this15.places[p1.data.grid.r].length - 1) {
-                        // line right
-                        var p2 = _this15.places[p1.data.grid.r][p1.data.grid.c + 1];
-                        _this15.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
-                    }
-                    if (p1.data.grid.r < _this15.places.length - 1) {
-                        // line down
-                        var _p = _this15.places[p1.data.grid.r + 1][p1.data.grid.c];
-                        _this15.drawLine(p1.data.x, p1.data.y, _p.data.x, _p.data.y);
-                    }
-                };
                 var _iteratorNormalCompletion7 = true;
                 var _didIteratorError7 = false;
                 var _iteratorError7 = undefined;
 
                 try {
-                    for (var _iterator7 = this.places[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                    for (var _iterator7 = _this16.places[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
                         var row = _step7.value;
                         var _iteratorNormalCompletion8 = true;
                         var _didIteratorError8 = false;
@@ -42288,7 +42320,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                             for (var _iterator8 = row[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
                                 var p = _step8.value;
 
-                                draw_place_line(p);
+                                p.update();
                             }
                         } catch (err) {
                             _didIteratorError8 = true;
@@ -42319,6 +42351,89 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                         }
                     }
                 }
+            };
+
+            _this16.data.onset('width', update);
+            _this16.data.onset('height', update);
+            return _this16;
+        }
+
+        _createClass(VMapRegion, [{
+            key: 'show',
+            value: function show(dn, tm) {
+                this.data.scale = 0.5;
+                _get(VMapRegion.prototype.__proto__ || Object.getPrototypeOf(VMapRegion.prototype), 'show', this).call(this, tm);
+                this.data.tween('scale', 1, dn, tm);
+            }
+        }, {
+            key: 'hide',
+            value: function hide(dn, tm) {
+                _get(VMapRegion.prototype.__proto__ || Object.getPrototypeOf(VMapRegion.prototype), 'hide', this).call(this, tm);
+                this.data.tween('scale', 0.5, dn, tm);
+            }
+        }, {
+            key: 'draw_back',
+            value: function draw_back() {
+                var _this17 = this;
+
+                var draw_place_line = function draw_place_line(p1) {
+                    if (p1.data.grid.c < _this17.places[p1.data.grid.r].length - 1) {
+                        // line right
+                        var p2 = _this17.places[p1.data.grid.r][p1.data.grid.c + 1];
+                        _this17.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
+                    }
+                    if (p1.data.grid.r < _this17.places.length - 1) {
+                        // line down
+                        var _p = _this17.places[p1.data.grid.r + 1][p1.data.grid.c];
+                        _this17.drawLine(p1.data.x, p1.data.y, _p.data.x, _p.data.y);
+                    }
+                };
+                var _iteratorNormalCompletion10 = true;
+                var _didIteratorError10 = false;
+                var _iteratorError10 = undefined;
+
+                try {
+                    for (var _iterator10 = this.places[Symbol.iterator](), _step10; !(_iteratorNormalCompletion10 = (_step10 = _iterator10.next()).done); _iteratorNormalCompletion10 = true) {
+                        var row = _step10.value;
+                        var _iteratorNormalCompletion11 = true;
+                        var _didIteratorError11 = false;
+                        var _iteratorError11 = undefined;
+
+                        try {
+                            for (var _iterator11 = row[Symbol.iterator](), _step11; !(_iteratorNormalCompletion11 = (_step11 = _iterator11.next()).done); _iteratorNormalCompletion11 = true) {
+                                var p = _step11.value;
+
+                                draw_place_line(p);
+                            }
+                        } catch (err) {
+                            _didIteratorError11 = true;
+                            _iteratorError11 = err;
+                        } finally {
+                            try {
+                                if (!_iteratorNormalCompletion11 && _iterator11.return) {
+                                    _iterator11.return();
+                                }
+                            } finally {
+                                if (_didIteratorError11) {
+                                    throw _iteratorError11;
+                                }
+                            }
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError10 = true;
+                    _iteratorError10 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion10 && _iterator10.return) {
+                            _iterator10.return();
+                        }
+                    } finally {
+                        if (_didIteratorError10) {
+                            throw _iteratorError10;
+                        }
+                    }
+                }
             }
         }]);
 
@@ -42331,11 +42446,11 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VMapWorld() {
             _classCallCheck(this, VMapWorld);
 
-            var _this16 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
+            var _this18 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
 
-            _this16.region = null;
-            _this16.next();
-            return _this16;
+            _this18.region = null;
+            _this18.next();
+            return _this18;
         }
 
         _createClass(VMapWorld, [{
@@ -42354,41 +42469,41 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VDialogMap(map) {
             _classCallCheck(this, VDialogMap);
 
-            var _this17 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
+            var _this19 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
 
-            _this17.data.width = g.screen.width * 2 / 3;
-            _this17.data.height = g.screen.height * 2 / 3;
+            _this19.data.width = g.screen.width * 2 / 3;
+            _this19.data.height = g.screen.height * 2 / 3;
 
             var padding = 8;
-            _this17.btn_toggle = new VButton('切').style_icon_small();
-            _this17.btn_toggle.data.x = -_this17.data.width / 2 + _this17.btn_toggle.data.width / 2 + padding;
-            _this17.btn_toggle.data.y = -_this17.data.height / 2 + _this17.btn_toggle.data.height / 2 + padding;
-            _this17.btn_toggle.click(function () {
-                return _this17.toggle();
+            _this19.btn_toggle = new VButton('切').style_icon_small();
+            _this19.btn_toggle.data.x = -_this19.data.width / 2 + _this19.btn_toggle.data.width / 2 + padding;
+            _this19.btn_toggle.data.y = -_this19.data.height / 2 + _this19.btn_toggle.data.height / 2 + padding;
+            _this19.btn_toggle.click(function () {
+                return _this19.toggle();
             });
-            _this17.addChild(_this17.btn_toggle);
+            _this19.addChild(_this19.btn_toggle);
 
-            _this17.btn_close = new VButton('关').style_icon_small();
-            _this17.btn_close.data.x = _this17.data.width / 2 - _this17.btn_toggle.data.width / 2 - padding;
-            _this17.btn_close.data.y = -_this17.data.height / 2 + _this17.btn_toggle.data.height / 2 + padding;
-            _this17.btn_close.click(function () {
-                return _this17.hide();
+            _this19.btn_close = new VButton('关').style_icon_small();
+            _this19.btn_close.data.x = _this19.data.width / 2 - _this19.btn_toggle.data.width / 2 - padding;
+            _this19.btn_close.data.y = -_this19.data.height / 2 + _this19.btn_toggle.data.height / 2 + padding;
+            _this19.btn_close.click(function () {
+                return _this19.hide();
             });
-            _this17.addChild(_this17.btn_close);
+            _this19.addChild(_this19.btn_close);
 
-            _this17.map = map;
-            _this17.map_cur = null;
-            _this17.padding = 80;
+            _this19.map = map;
+            _this19.map_cur = null;
+            _this19.padding = 80;
 
-            _this17.toggling = false;
-            _this17.toggle();
-            return _this17;
+            _this19.toggling = false;
+            _this19.toggle();
+            return _this19;
         }
 
         _createClass(VDialogMap, [{
             key: 'toggle',
             value: function toggle() {
-                var _this18 = this;
+                var _this20 = this;
 
                 if (this.toggling) return;
                 this.toggling = true;
@@ -42396,7 +42511,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 var map_old = this.map_cur;
                 if (map_old) {
                     map_old.hide(function () {
-                        _this18.removeChild(map_old);
+                        _this20.removeChild(map_old);
                     });
                 }
 
@@ -42408,7 +42523,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.map_cur.layer_bot();
                 if (map_old) {
                     this.map_cur.show(function () {
-                        _this18.toggling = false;
+                        _this20.toggling = false;
                     });
                 } else {
                     this.toggling = false;
@@ -42861,22 +42976,43 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return DButton;
     }(DPane);
 
-    var DDialog = function (_DPane2) {
-        _inherits(DDialog, _DPane2);
+    var DShadow = function (_DPane2) {
+        _inherits(DShadow, _DPane2);
+
+        function DShadow() {
+            _classCallCheck(this, DShadow);
+
+            var _this5 = _possibleConstructorReturn(this, (DShadow.__proto__ || Object.getPrototypeOf(DShadow)).call(this));
+
+            _this5.width = g.screen.width;
+            _this5.height = g.screen.height;
+            _this5.x = _this5.width / 2;
+            _this5.y = _this5.height / 2;
+            _this5.border = 0;
+            _this5.color_bg = 0x000000;
+            _this5.alpha_draw = 0.01;
+            return _this5;
+        }
+
+        return DShadow;
+    }(DPane);
+
+    var DDialog = function (_DPane3) {
+        _inherits(DDialog, _DPane3);
 
         function DDialog() {
             _classCallCheck(this, DDialog);
 
-            var _this5 = _possibleConstructorReturn(this, (DDialog.__proto__ || Object.getPrototypeOf(DDialog)).call(this));
+            var _this6 = _possibleConstructorReturn(this, (DDialog.__proto__ || Object.getPrototypeOf(DDialog)).call(this));
 
-            _this5.width = g.screen.width / 2;
-            _this5.height = g.screen.height / 3;
-            _this5.x = g.screen.width / 2;
-            _this5.y = g.screen.height / 2;
-            _this5.color_bg = 0x888888;
+            _this6.width = g.screen.width / 2;
+            _this6.height = g.screen.height / 3;
+            _this6.x = g.screen.width / 2;
+            _this6.y = g.screen.height / 2;
+            _this6.color_bg = 0x888888;
 
-            _this5.options = {};
-            return _this5;
+            _this6.options = {};
+            return _this6;
         }
 
         _createClass(DDialog, [{
@@ -42891,41 +43027,41 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return DDialog;
     }(DPane);
 
-    var DPaneResource = function (_DPane3) {
-        _inherits(DPaneResource, _DPane3);
+    var DPaneResource = function (_DPane4) {
+        _inherits(DPaneResource, _DPane4);
 
         function DPaneResource() {
             _classCallCheck(this, DPaneResource);
 
-            var _this6 = _possibleConstructorReturn(this, (DPaneResource.__proto__ || Object.getPrototypeOf(DPaneResource)).call(this));
+            var _this7 = _possibleConstructorReturn(this, (DPaneResource.__proto__ || Object.getPrototypeOf(DPaneResource)).call(this));
 
-            _this6.width = 256;
-            _this6.height = 32;
-            _this6.x = _this6.width / 2 + _this6.border / 2;
-            _this6.y = _this6.height / 2 + _this6.border / 2;
-            _this6.color_bg = 0x888888;
+            _this7.width = 256;
+            _this7.height = 32;
+            _this7.x = _this7.width / 2 + _this7.border / 2;
+            _this7.y = _this7.height / 2 + _this7.border / 2;
+            _this7.color_bg = 0x888888;
 
-            _this6.grid = tool.grid(-_this6.height / 2, -_this6.width / 2, _this6.height / 2, _this6.width / 2, 3, 1);
-            return _this6;
+            _this7.grid = tool.grid(-_this7.height / 2, -_this7.width / 2, _this7.height / 2, _this7.width / 2, 3, 1);
+            return _this7;
         }
 
         return DPaneResource;
     }(DPane);
 
-    var DPaneOperate = function (_DPane4) {
-        _inherits(DPaneOperate, _DPane4);
+    var DPaneOperate = function (_DPane5) {
+        _inherits(DPaneOperate, _DPane5);
 
         function DPaneOperate() {
             _classCallCheck(this, DPaneOperate);
 
-            var _this7 = _possibleConstructorReturn(this, (DPaneOperate.__proto__ || Object.getPrototypeOf(DPaneOperate)).call(this));
+            var _this8 = _possibleConstructorReturn(this, (DPaneOperate.__proto__ || Object.getPrototypeOf(DPaneOperate)).call(this));
 
-            _this7.width = 256;
-            _this7.height = 80;
-            _this7.x = _this7.width / 2 + _this7.border / 2;
-            _this7.y = g.screen.height - _this7.height / 2 - _this7.border / 2;
-            _this7.color_bg = 0x888888;
-            return _this7;
+            _this8.width = 256;
+            _this8.height = 80;
+            _this8.x = _this8.width / 2 + _this8.border / 2;
+            _this8.y = g.screen.height - _this8.height / 2 - _this8.border / 2;
+            _this8.color_bg = 0x888888;
+            return _this8;
         }
 
         return DPaneOperate;
@@ -42943,45 +43079,45 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return DHero;
     }(Data);
 
-    var DMapPlace = function (_DPane5) {
-        _inherits(DMapPlace, _DPane5);
+    var DMapPlace = function (_DPane6) {
+        _inherits(DMapPlace, _DPane6);
 
         function DMapPlace() {
             _classCallCheck(this, DMapPlace);
 
-            var _this9 = _possibleConstructorReturn(this, (DMapPlace.__proto__ || Object.getPrototypeOf(DMapPlace)).call(this));
+            var _this10 = _possibleConstructorReturn(this, (DMapPlace.__proto__ || Object.getPrototypeOf(DMapPlace)).call(this));
 
-            _this9.border = 1;
-            _this9.color_bg = 0x888888;
+            _this10.border = 1;
+            _this10.color_bg = 0x888888;
 
-            _this9.grid = {
+            _this10.grid = {
                 r: 0,
                 c: 0,
                 x: 0, // rate 0 - 1
                 y: 0 // rate 0 - 1
             };
-            _this9.radius = 10;
-            _this9.type = 'normal'; // normal / entrance / exit
-            return _this9;
+            _this10.radius = 10;
+            _this10.type = 'normal'; // normal / entrance / exit
+            return _this10;
         }
 
         return DMapPlace;
     }(DPane);
 
-    var DMapRegion = function (_DPane6) {
-        _inherits(DMapRegion, _DPane6);
+    var DMapRegion = function (_DPane7) {
+        _inherits(DMapRegion, _DPane7);
 
         function DMapRegion() {
             _classCallCheck(this, DMapRegion);
 
-            var _this10 = _possibleConstructorReturn(this, (DMapRegion.__proto__ || Object.getPrototypeOf(DMapRegion)).call(this));
+            var _this11 = _possibleConstructorReturn(this, (DMapRegion.__proto__ || Object.getPrototypeOf(DMapRegion)).call(this));
 
-            _this10.border = 1;
+            _this11.border = 1;
 
-            _this10.level = 0;
-            _this10.row = 0;
-            _this10.col = 0;
-            return _this10;
+            _this11.level = 0;
+            _this11.row = 0;
+            _this11.col = 0;
+            return _this11;
         }
 
         _createClass(DMapRegion, [{
@@ -43020,19 +43156,19 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return DMapRegion;
     }(DPane);
 
-    var DMapWorld = function (_DPane7) {
-        _inherits(DMapWorld, _DPane7);
+    var DMapWorld = function (_DPane8) {
+        _inherits(DMapWorld, _DPane8);
 
         function DMapWorld() {
             _classCallCheck(this, DMapWorld);
 
-            var _this11 = _possibleConstructorReturn(this, (DMapWorld.__proto__ || Object.getPrototypeOf(DMapWorld)).call(this));
+            var _this12 = _possibleConstructorReturn(this, (DMapWorld.__proto__ || Object.getPrototypeOf(DMapWorld)).call(this));
 
-            _this11.border = 1;
-            _this11.color_bg = 0xff0000;
+            _this12.border = 1;
+            _this12.color_bg = 0xff0000;
 
-            _this11.level = 0;
-            return _this11;
+            _this12.level = 0;
+            return _this12;
         }
 
         return DMapWorld;
@@ -43043,6 +43179,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         DLabel: DLabel,
         DPane: DPane,
         DButton: DButton,
+        DShadow: DShadow,
         DDialog: DDialog,
         DPaneResource: DPaneResource,
         DPaneOperate: DPaneOperate,
