@@ -18,7 +18,7 @@
             };
             find_data(Object.getPrototypeOf(this));
 
-            this.state  = 'default';
+            this.state  = 'normal';    // normal / over / down
             
             this.data.bindo(this.position, 'x');
             this.data.bindo(this.position, 'y');
@@ -30,6 +30,41 @@
                 this.scale.y = v;
             });
             this.data.bindo(this, 'visible');
+        }
+        
+        draw () {
+            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+            let color_bg = this.data.color_bg;
+            let alpha_draw = this.data.alpha_draw;
+            if (null == color_bg) {
+                color_bg = 0x000000;
+                alpha_draw = 0;
+            };
+            this.beginFill(color_bg, alpha_draw);
+            this.draw_shape();
+            this.endFill();
+
+            this.draw_post();
+        }
+
+        draw_shape () {}
+
+        draw_post () {
+            if (this.interactive) {
+                let color_mask = this.data.color_mask_light;
+                switch (this.state) {
+                    case 'over':
+                        color_mask = this.data.color_mask_light;
+                        break;
+                    case 'down':
+                        color_mask = this.data.color_mask_dark;
+                        break;
+                }
+                this.lineStyle(this.data.border, color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+                this.beginFill(color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+                this.draw_shape();
+                this.endFill();
+            }
         }
 
         drawLine(x1, y1, x2, y2) {
@@ -114,7 +149,7 @@
         }
 
         auto_interactive (
-            defa    = () => {},
+            norm    = () => {},
             over    = () => {},
             down    = () => {},
         ) {
@@ -129,25 +164,30 @@
             this.on('pointerover', () => {
                 this.layer_top();
                 this.state = 'over';
+                this.data.tween('alpha_draw_mask', 0.2);
                 over();
             });
             this.on('pointerout', () => {
-                this.state = 'default';
-                defa();
+                this.state = 'normal';
+                this.data.tween('alpha_draw_mask', 0);
+                norm();
             });
             this.on('pointerdown', () => {
                 this.layer_top();
                 this.state = 'down';
+                this.data.tween('alpha_draw_mask', 0.2);
                 down();
             });
             this.on('pointerup', () => {
                 this.layer_top();
                 this.state = 'over';
+                this.data.tween('alpha_draw_mask', 0.2);
                 over();
             });
             this.on('pointerupoutside', () => {
-                this.state = 'default'
-                defa();
+                this.state = 'normal';
+                this.data.tween('alpha_draw_mask', 0);
+                norm();
             });
         }
 
@@ -214,22 +254,6 @@
     class VPane extends View {
         constructor () {
             super();
-            this.on('pointerup', () => false);
-        }
-        
-        draw () {
-            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-            let color_bg = this.data.color_bg;
-            let alpha_draw = this.data.alpha_draw;
-            if (null == color_bg) {
-                color_bg = 0x000000;
-                alpha_draw = 0;
-            };
-            this.beginFill(color_bg, alpha_draw);
-            this.draw_shape();
-            this.endFill();
-
-            this.draw_post();
         }
 
         draw_shape () {
@@ -238,26 +262,6 @@
                                  this.data.width * this.data.scale_draw,
                                  this.data.height * this.data.scale_draw,
                                  this.data.round * this.data.scale_draw);
-        }
-
-        draw_post () {
-            if (this.interactive) {
-                let color_mask = undefined;
-                switch (this.state) {
-                    case 'over':
-                        color_mask = this.data.color_mask_light;
-                        break;
-                    case 'down':
-                        color_mask = this.data.color_mask_dark;
-                        break;
-                }
-                if (undefined != color_mask) {
-                    this.lineStyle(this.data.border, color_mask, this.data.alpha_draw_mask);
-                    this.beginFill(color_mask, this.data.alpha_draw_mask);
-                    this.draw_shape();
-                    this.endFill();
-                }
-            }
         }
     }
 
@@ -307,17 +311,31 @@
         }
     }
 
+    class VShadow extends VPane {
+        constructor () {
+            super();
+
+            this.data.color_bg     = 0x000000;
+            this.data.alpha_draw   = 0.01;
+            this.data.width     = g.screen.width;
+            this.data.height    = g.screen.height;
+            this.data.x         = this.data.width / 2;
+            this.data.y         = this.data.height / 2;
+            this.interactive    = true;
+            this.on('pointerover', () => false);
+            this.on('pointerout', () => false);
+            this.on('pointerdown', () => false);
+            this.on('pointerup', () => false);
+            this.on('pointerupoutside', () => false);
+        }
+    }
+
 
     class VDialog extends VPane {
         constructor () {
             super();
             
-            // this.mask   = new VPane();
-            // this.mask.data.alpha_draw   = 0.01;
-            // this.mask.data.color_bg     = 0x000000;
-            // this.mask.data.width    = g.screen.width;
-            // this.mask.data.height   = g.screen.height;
-            // this.mask.interactive   = true;
+            this.shadow   = new VShadow();
             this.buttons = {};
         }
         
@@ -357,7 +375,7 @@
         }
         
         show (dn) {
-            // g.app.stage.addChild(this.mask);
+            g.app.stage.addChild(this.shadow);
             g.app.stage.addChild(this);
             super.show(dn, 500);
         }
@@ -365,7 +383,7 @@
         hide (dn) {
             super.hide(() => {
                 this.parent.removeChild(this);
-                // this.mask.parent.removeChild(this.mask);
+                this.shadow.parent.removeChild(this.shadow);
                 if (dn) dn();
             }, 500);
         }
@@ -435,10 +453,12 @@
         constructor (level) {
             super();
 
-            this.place = [];
+            this.places = [];
+            this.entrance = null;
+            this.exit = null;
 
-            let place = this.data.place(level);
-            for (let row of place) {
+            let {places, entrance, exit} = this.data.places(level);
+            for (let row of places) {
                 let r = [];
                 for (let p of row) {
                     let v = new VMapPlace(this);
@@ -446,11 +466,13 @@
                     r.push(v);
                     this.addChild(v);
                 }
-                this.place.push(r);
+                this.places.push(r);
             }
+            this.entrance = this.places[entrance.grid.r][entrance.grid.c];
+            this.exit = this.places[exit.grid.r][exit.grid.c];
 
             let update = () => {
-                for (let row of this.place) {
+                for (let row of this.places) {
                     for (let p of row) {
                         p.update();
                     }
@@ -474,16 +496,16 @@
 
         draw_shape () {
             let draw_place_line = (p1) => {
-                if (p1.data.grid.c < this.place[p1.data.grid.r].length - 1) { // line right
-                    let p2 = this.place[p1.data.grid.r][p1.data.grid.c + 1];
+                if (p1.data.grid.c < this.places[p1.data.grid.r].length - 1) { // line right
+                    let p2 = this.places[p1.data.grid.r][p1.data.grid.c + 1];
                     this.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
                 }
-                if (p1.data.grid.r < this.place.length - 1) { // line down
-                    let p2 = this.place[p1.data.grid.r + 1][p1.data.grid.c];
+                if (p1.data.grid.r < this.places.length - 1) { // line down
+                    let p2 = this.places[p1.data.grid.r + 1][p1.data.grid.c];
                     this.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
                 }
             }
-            for (let row of this.place) {
+            for (let row of this.places) {
                 for (let p of row) {
                     draw_place_line(p);
                 }
@@ -562,6 +584,7 @@
         VLabel,
         VPane,
         VButton,
+        VShadow,
         VDialog,
         VPaneResource,
         VPaneOperate,

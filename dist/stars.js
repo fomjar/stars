@@ -41516,7 +41516,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             };
             find_data(Object.getPrototypeOf(_this));
 
-            _this.state = 'default';
+            _this.state = 'normal'; // normal / over / down
 
             _this.data.bindo(_this.position, 'x');
             _this.data.bindo(_this.position, 'y');
@@ -41532,6 +41532,44 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }
 
         _createClass(View, [{
+            key: 'draw',
+            value: function draw() {
+                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+                var color_bg = this.data.color_bg;
+                var alpha_draw = this.data.alpha_draw;
+                if (null == color_bg) {
+                    color_bg = 0x000000;
+                    alpha_draw = 0;
+                };
+                this.beginFill(color_bg, alpha_draw);
+                this.draw_shape();
+                this.endFill();
+
+                this.draw_post();
+            }
+        }, {
+            key: 'draw_shape',
+            value: function draw_shape() {}
+        }, {
+            key: 'draw_post',
+            value: function draw_post() {
+                if (this.interactive) {
+                    var color_mask = this.data.color_mask_light;
+                    switch (this.state) {
+                        case 'over':
+                            color_mask = this.data.color_mask_light;
+                            break;
+                        case 'down':
+                            color_mask = this.data.color_mask_dark;
+                            break;
+                    }
+                    this.lineStyle(this.data.border, color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+                    this.beginFill(color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+                    this.draw_shape();
+                    this.endFill();
+                }
+            }
+        }, {
             key: 'drawLine',
             value: function drawLine(x1, y1, x2, y2) {
                 var color = this.lineColor;
@@ -41667,7 +41705,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
             key: 'auto_interactive',
             value: function auto_interactive() {
-                var defa = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
+                var norm = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
 
                 var _this2 = this;
 
@@ -41685,25 +41723,30 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.on('pointerover', function () {
                     _this2.layer_top();
                     _this2.state = 'over';
+                    _this2.data.tween('alpha_draw_mask', 0.2);
                     over();
                 });
                 this.on('pointerout', function () {
-                    _this2.state = 'default';
-                    defa();
+                    _this2.state = 'normal';
+                    _this2.data.tween('alpha_draw_mask', 0);
+                    norm();
                 });
                 this.on('pointerdown', function () {
                     _this2.layer_top();
                     _this2.state = 'down';
+                    _this2.data.tween('alpha_draw_mask', 0.2);
                     down();
                 });
                 this.on('pointerup', function () {
                     _this2.layer_top();
                     _this2.state = 'over';
+                    _this2.data.tween('alpha_draw_mask', 0.2);
                     over();
                 });
                 this.on('pointerupoutside', function () {
-                    _this2.state = 'default';
-                    defa();
+                    _this2.state = 'normal';
+                    _this2.data.tween('alpha_draw_mask', 0);
+                    norm();
                 });
             }
         }, {
@@ -41803,55 +41846,13 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VPane() {
             _classCallCheck(this, VPane);
 
-            var _this5 = _possibleConstructorReturn(this, (VPane.__proto__ || Object.getPrototypeOf(VPane)).call(this));
-
-            _this5.on('pointerup', function () {
-                return false;
-            });
-            return _this5;
+            return _possibleConstructorReturn(this, (VPane.__proto__ || Object.getPrototypeOf(VPane)).call(this));
         }
 
         _createClass(VPane, [{
-            key: 'draw',
-            value: function draw() {
-                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-                var color_bg = this.data.color_bg;
-                var alpha_draw = this.data.alpha_draw;
-                if (null == color_bg) {
-                    color_bg = 0x000000;
-                    alpha_draw = 0;
-                };
-                this.beginFill(color_bg, alpha_draw);
-                this.draw_shape();
-                this.endFill();
-
-                this.draw_post();
-            }
-        }, {
             key: 'draw_shape',
             value: function draw_shape() {
                 this.drawRoundedRect(-this.data.width / 2 * this.data.scale_draw, -this.data.height / 2 * this.data.scale_draw, this.data.width * this.data.scale_draw, this.data.height * this.data.scale_draw, this.data.round * this.data.scale_draw);
-            }
-        }, {
-            key: 'draw_post',
-            value: function draw_post() {
-                if (this.interactive) {
-                    var color_mask = undefined;
-                    switch (this.state) {
-                        case 'over':
-                            color_mask = this.data.color_mask_light;
-                            break;
-                        case 'down':
-                            color_mask = this.data.color_mask_dark;
-                            break;
-                    }
-                    if (undefined != color_mask) {
-                        this.lineStyle(this.data.border, color_mask, this.data.alpha_draw_mask);
-                        this.beginFill(color_mask, this.data.alpha_draw_mask);
-                        this.draw_shape();
-                        this.endFill();
-                    }
-                }
             }
         }]);
 
@@ -41922,22 +41923,53 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         return VButton;
     }(VPane);
 
-    var VDialog = function (_VPane2) {
-        _inherits(VDialog, _VPane2);
+    var VShadow = function (_VPane2) {
+        _inherits(VShadow, _VPane2);
+
+        function VShadow() {
+            _classCallCheck(this, VShadow);
+
+            var _this7 = _possibleConstructorReturn(this, (VShadow.__proto__ || Object.getPrototypeOf(VShadow)).call(this));
+
+            _this7.data.color_bg = 0x000000;
+            _this7.data.alpha_draw = 0.01;
+            _this7.data.width = g.screen.width;
+            _this7.data.height = g.screen.height;
+            _this7.data.x = _this7.data.width / 2;
+            _this7.data.y = _this7.data.height / 2;
+            _this7.interactive = true;
+            _this7.on('pointerover', function () {
+                return false;
+            });
+            _this7.on('pointerout', function () {
+                return false;
+            });
+            _this7.on('pointerdown', function () {
+                return false;
+            });
+            _this7.on('pointerup', function () {
+                return false;
+            });
+            _this7.on('pointerupoutside', function () {
+                return false;
+            });
+            return _this7;
+        }
+
+        return VShadow;
+    }(VPane);
+
+    var VDialog = function (_VPane3) {
+        _inherits(VDialog, _VPane3);
 
         function VDialog() {
             _classCallCheck(this, VDialog);
 
-            // this.mask   = new VPane();
-            // this.mask.data.alpha_draw   = 0.01;
-            // this.mask.data.color_bg     = 0x000000;
-            // this.mask.data.width    = g.screen.width;
-            // this.mask.data.height   = g.screen.height;
-            // this.mask.interactive   = true;
-            var _this7 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
+            var _this8 = _possibleConstructorReturn(this, (VDialog.__proto__ || Object.getPrototypeOf(VDialog)).call(this));
 
-            _this7.buttons = {};
-            return _this7;
+            _this8.shadow = new VShadow();
+            _this8.buttons = {};
+            return _this8;
         }
 
         _createClass(VDialog, [{
@@ -41974,18 +42006,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
             key: 'show',
             value: function show(dn) {
-                // g.app.stage.addChild(this.mask);
+                g.app.stage.addChild(this.shadow);
                 g.app.stage.addChild(this);
                 _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'show', this).call(this, dn, 500);
             }
         }, {
             key: 'hide',
             value: function hide(dn) {
-                var _this8 = this;
+                var _this9 = this;
 
                 _get(VDialog.prototype.__proto__ || Object.getPrototypeOf(VDialog.prototype), 'hide', this).call(this, function () {
-                    _this8.parent.removeChild(_this8);
-                    // this.mask.parent.removeChild(this.mask);
+                    _this9.parent.removeChild(_this9);
+                    _this9.shadow.parent.removeChild(_this9.shadow);
                     if (dn) dn();
                 }, 500);
             }
@@ -41994,46 +42026,46 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         return VDialog;
     }(VPane);
 
-    var VPaneResource = function (_VPane3) {
-        _inherits(VPaneResource, _VPane3);
+    var VPaneResource = function (_VPane4) {
+        _inherits(VPaneResource, _VPane4);
 
         function VPaneResource() {
             _classCallCheck(this, VPaneResource);
 
-            var _this9 = _possibleConstructorReturn(this, (VPaneResource.__proto__ || Object.getPrototypeOf(VPaneResource)).call(this));
+            var _this10 = _possibleConstructorReturn(this, (VPaneResource.__proto__ || Object.getPrototypeOf(VPaneResource)).call(this));
 
             var create_resource = function create_resource(name, key, grid) {
                 var icon = new VButton(name).style_icon_small();
                 var label = new VLabel('0').align_left();
                 label.data.fill = 'white';
 
-                var padding = (_this9.data.height - icon.data.height) / 2;
+                var padding = (_this10.data.height - icon.data.height) / 2;
                 icon.data.x = grid.x - grid.w / 2 + padding + icon.data.width / 2;
                 label.data.x = grid.x - grid.w / 2 + padding * 1.5 + icon.data.width;
 
-                _this9.addChild(icon);
-                _this9.addChild(label);
+                _this10.addChild(icon);
+                _this10.addChild(label);
             };
 
-            create_resource('炭', 'C14', _this9.data.grid[0]);
-            create_resource('钛', 'Ti', _this9.data.grid[1]);
-            create_resource('钚', 'Pu238', _this9.data.grid[2]);
-            return _this9;
+            create_resource('炭', 'C14', _this10.data.grid[0]);
+            create_resource('钛', 'Ti', _this10.data.grid[1]);
+            create_resource('钚', 'Pu238', _this10.data.grid[2]);
+            return _this10;
         }
 
         return VPaneResource;
     }(VPane);
 
-    var VPaneOperate = function (_VPane4) {
-        _inherits(VPaneOperate, _VPane4);
+    var VPaneOperate = function (_VPane5) {
+        _inherits(VPaneOperate, _VPane5);
 
         function VPaneOperate() {
             _classCallCheck(this, VPaneOperate);
 
-            var _this10 = _possibleConstructorReturn(this, (VPaneOperate.__proto__ || Object.getPrototypeOf(VPaneOperate)).call(this));
+            var _this11 = _possibleConstructorReturn(this, (VPaneOperate.__proto__ || Object.getPrototypeOf(VPaneOperate)).call(this));
 
-            _this10.addChild(_this10.btn = new VButton('结束本轮').style_primary());
-            return _this10;
+            _this11.addChild(_this11.btn = new VButton('结束本轮').style_primary());
+            return _this11;
         }
 
         return VPaneOperate;
@@ -42051,18 +42083,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         return VHero;
     }(View);
 
-    var VMapPlace = function (_VPane5) {
-        _inherits(VMapPlace, _VPane5);
+    var VMapPlace = function (_VPane6) {
+        _inherits(VMapPlace, _VPane6);
 
         function VMapPlace(region) {
             _classCallCheck(this, VMapPlace);
 
-            var _this12 = _possibleConstructorReturn(this, (VMapPlace.__proto__ || Object.getPrototypeOf(VMapPlace)).call(this));
+            var _this13 = _possibleConstructorReturn(this, (VMapPlace.__proto__ || Object.getPrototypeOf(VMapPlace)).call(this));
 
-            _this12.region = region;
+            _this13.region = region;
 
-            _this12.auto_interactive_scale(1.5);
-            return _this12;
+            _this13.auto_interactive_scale(1.5);
+            return _this13;
         }
 
         _createClass(VMapPlace, [{
@@ -42083,23 +42115,29 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         return VMapPlace;
     }(VPane);
 
-    var VMapRegion = function (_VPane6) {
-        _inherits(VMapRegion, _VPane6);
+    var VMapRegion = function (_VPane7) {
+        _inherits(VMapRegion, _VPane7);
 
         function VMapRegion(level) {
             _classCallCheck(this, VMapRegion);
 
-            var _this13 = _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
+            var _this14 = _possibleConstructorReturn(this, (VMapRegion.__proto__ || Object.getPrototypeOf(VMapRegion)).call(this));
 
-            _this13.place = [];
+            _this14.places = [];
+            _this14.entrance = null;
+            _this14.exit = null;
 
-            var place = _this13.data.place(level);
+            var _this14$data$places = _this14.data.places(level),
+                places = _this14$data$places.places,
+                entrance = _this14$data$places.entrance,
+                exit = _this14$data$places.exit;
+
             var _iteratorNormalCompletion3 = true;
             var _didIteratorError3 = false;
             var _iteratorError3 = undefined;
 
             try {
-                for (var _iterator3 = place[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                for (var _iterator3 = places[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
                     var row = _step3.value;
 
                     var r = [];
@@ -42111,10 +42149,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                         for (var _iterator6 = row[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
                             var p = _step6.value;
 
-                            var v = new VMapPlace(_this13);
+                            var v = new VMapPlace(_this14);
                             Object.assign(v.data, p);
                             r.push(v);
-                            _this13.addChild(v);
+                            _this14.addChild(v);
                         }
                     } catch (err) {
                         _didIteratorError6 = true;
@@ -42131,7 +42169,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                         }
                     }
 
-                    _this13.place.push(r);
+                    _this14.places.push(r);
                 }
             } catch (err) {
                 _didIteratorError3 = true;
@@ -42148,13 +42186,16 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 }
             }
 
+            _this14.entrance = _this14.places[entrance.grid.r][entrance.grid.c];
+            _this14.exit = _this14.places[exit.grid.r][exit.grid.c];
+
             var update = function update() {
                 var _iteratorNormalCompletion4 = true;
                 var _didIteratorError4 = false;
                 var _iteratorError4 = undefined;
 
                 try {
-                    for (var _iterator4 = _this13.place[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                    for (var _iterator4 = _this14.places[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
                         var row = _step4.value;
                         var _iteratorNormalCompletion5 = true;
                         var _didIteratorError5 = false;
@@ -42197,9 +42238,9 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 }
             };
 
-            _this13.data.onset('width', update);
-            _this13.data.onset('height', update);
-            return _this13;
+            _this14.data.onset('width', update);
+            _this14.data.onset('height', update);
+            return _this14;
         }
 
         _createClass(VMapRegion, [{
@@ -42218,18 +42259,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         }, {
             key: 'draw_shape',
             value: function draw_shape() {
-                var _this14 = this;
+                var _this15 = this;
 
                 var draw_place_line = function draw_place_line(p1) {
-                    if (p1.data.grid.c < _this14.place[p1.data.grid.r].length - 1) {
+                    if (p1.data.grid.c < _this15.places[p1.data.grid.r].length - 1) {
                         // line right
-                        var p2 = _this14.place[p1.data.grid.r][p1.data.grid.c + 1];
-                        _this14.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
+                        var p2 = _this15.places[p1.data.grid.r][p1.data.grid.c + 1];
+                        _this15.drawLine(p1.data.x, p1.data.y, p2.data.x, p2.data.y);
                     }
-                    if (p1.data.grid.r < _this14.place.length - 1) {
+                    if (p1.data.grid.r < _this15.places.length - 1) {
                         // line down
-                        var _p = _this14.place[p1.data.grid.r + 1][p1.data.grid.c];
-                        _this14.drawLine(p1.data.x, p1.data.y, _p.data.x, _p.data.y);
+                        var _p = _this15.places[p1.data.grid.r + 1][p1.data.grid.c];
+                        _this15.drawLine(p1.data.x, p1.data.y, _p.data.x, _p.data.y);
                     }
                 };
                 var _iteratorNormalCompletion7 = true;
@@ -42237,7 +42278,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 var _iteratorError7 = undefined;
 
                 try {
-                    for (var _iterator7 = this.place[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+                    for (var _iterator7 = this.places[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
                         var row = _step7.value;
                         var _iteratorNormalCompletion8 = true;
                         var _didIteratorError8 = false;
@@ -42284,17 +42325,17 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         return VMapRegion;
     }(VPane);
 
-    var VMapWorld = function (_VPane7) {
-        _inherits(VMapWorld, _VPane7);
+    var VMapWorld = function (_VPane8) {
+        _inherits(VMapWorld, _VPane8);
 
         function VMapWorld() {
             _classCallCheck(this, VMapWorld);
 
-            var _this15 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
+            var _this16 = _possibleConstructorReturn(this, (VMapWorld.__proto__ || Object.getPrototypeOf(VMapWorld)).call(this));
 
-            _this15.region = null;
-            _this15.next();
-            return _this15;
+            _this16.region = null;
+            _this16.next();
+            return _this16;
         }
 
         _createClass(VMapWorld, [{
@@ -42313,41 +42354,41 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         function VDialogMap(map) {
             _classCallCheck(this, VDialogMap);
 
-            var _this16 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
+            var _this17 = _possibleConstructorReturn(this, (VDialogMap.__proto__ || Object.getPrototypeOf(VDialogMap)).call(this));
 
-            _this16.data.width = g.screen.width * 2 / 3;
-            _this16.data.height = g.screen.height * 2 / 3;
+            _this17.data.width = g.screen.width * 2 / 3;
+            _this17.data.height = g.screen.height * 2 / 3;
 
             var padding = 8;
-            _this16.btn_toggle = new VButton('切').style_icon_small();
-            _this16.btn_toggle.data.x = -_this16.data.width / 2 + _this16.btn_toggle.data.width / 2 + padding;
-            _this16.btn_toggle.data.y = -_this16.data.height / 2 + _this16.btn_toggle.data.height / 2 + padding;
-            _this16.btn_toggle.click(function () {
-                return _this16.toggle();
+            _this17.btn_toggle = new VButton('切').style_icon_small();
+            _this17.btn_toggle.data.x = -_this17.data.width / 2 + _this17.btn_toggle.data.width / 2 + padding;
+            _this17.btn_toggle.data.y = -_this17.data.height / 2 + _this17.btn_toggle.data.height / 2 + padding;
+            _this17.btn_toggle.click(function () {
+                return _this17.toggle();
             });
-            _this16.addChild(_this16.btn_toggle);
+            _this17.addChild(_this17.btn_toggle);
 
-            _this16.btn_close = new VButton('关').style_icon_small();
-            _this16.btn_close.data.x = _this16.data.width / 2 - _this16.btn_toggle.data.width / 2 - padding;
-            _this16.btn_close.data.y = -_this16.data.height / 2 + _this16.btn_toggle.data.height / 2 + padding;
-            _this16.btn_close.click(function () {
-                return _this16.hide();
+            _this17.btn_close = new VButton('关').style_icon_small();
+            _this17.btn_close.data.x = _this17.data.width / 2 - _this17.btn_toggle.data.width / 2 - padding;
+            _this17.btn_close.data.y = -_this17.data.height / 2 + _this17.btn_toggle.data.height / 2 + padding;
+            _this17.btn_close.click(function () {
+                return _this17.hide();
             });
-            _this16.addChild(_this16.btn_close);
+            _this17.addChild(_this17.btn_close);
 
-            _this16.map = map;
-            _this16.map_cur = null;
-            _this16.padding = 80;
+            _this17.map = map;
+            _this17.map_cur = null;
+            _this17.padding = 80;
 
-            _this16.toggling = false;
-            _this16.toggle();
-            return _this16;
+            _this17.toggling = false;
+            _this17.toggle();
+            return _this17;
         }
 
         _createClass(VDialogMap, [{
             key: 'toggle',
             value: function toggle() {
-                var _this17 = this;
+                var _this18 = this;
 
                 if (this.toggling) return;
                 this.toggling = true;
@@ -42355,7 +42396,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 var map_old = this.map_cur;
                 if (map_old) {
                     map_old.hide(function () {
-                        _this17.removeChild(map_old);
+                        _this18.removeChild(map_old);
                     });
                 }
 
@@ -42367,7 +42408,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 this.map_cur.layer_bot();
                 if (map_old) {
                     this.map_cur.show(function () {
-                        _this17.toggling = false;
+                        _this18.toggling = false;
                     });
                 } else {
                     this.toggling = false;
@@ -42383,6 +42424,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         VLabel: VLabel,
         VPane: VPane,
         VButton: VButton,
+        VShadow: VShadow,
         VDialog: VDialog,
         VPaneResource: VPaneResource,
         VPaneOperate: VPaneOperate,
@@ -42608,9 +42650,17 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             this.y = 0;
             this.width = 1;
             this.height = 1;
-            this.scale = 1;
-            this.alpha = 1;
             this.visible = true;
+            this.scale = 1;
+            this.scale_draw = 1;
+            this.alpha = 1;
+            this.alpha_draw = 1;
+            this.alpha_draw_mask = 0;
+            this.border = 2;
+            this.color_bg = null;
+            this.color_bd = 0xcccccc;
+            this.color_mask_light = 0xffffff;
+            this.color_mask_dark = 0x000000;
         }
         /**
          * 缓动动画。
@@ -42760,14 +42810,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             var _this3 = _possibleConstructorReturn(this, (DPane.__proto__ || Object.getPrototypeOf(DPane)).call(this));
 
             _this3.round = 1;
-            _this3.border = 2;
-            _this3.scale_draw = 1;
-            _this3.alpha_draw = 1;
-            _this3.alpha_draw_mask = 0.2;
-            _this3.color_bg = null;
-            _this3.color_bd = 0xcccccc;
-            _this3.color_mask_light = 0xffffff;
-            _this3.color_mask_dark = 0x000000;
             return _this3;
         }
 
@@ -42919,6 +42961,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 y: 0 // rate 0 - 1
             };
             _this9.radius = 10;
+            _this9.type = 'normal'; // normal / entrance / exit
             return _this9;
         }
 
@@ -42942,8 +42985,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         }
 
         _createClass(DMapRegion, [{
-            key: 'place',
-            value: function place(level) {
+            key: 'places',
+            value: function places(level) {
                 this.level = level;
                 this.row = 3 + Math.floor(level / 2);
                 this.col = 3 + Math.ceil(level / 2);
@@ -42953,7 +42996,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                     return v;
                 };
 
-                var place = [];
+                var places = [];
                 for (var r = 0; r < this.row; r++) {
                     var row = [];
                     for (var c = 0; c < this.col; c++) {
@@ -42964,9 +43007,13 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                         p.grid.y = extreme_random();
                         row.push(p);
                     }
-                    place.push(row);
+                    places.push(row);
                 }
-                return place;
+                var entrance = places[Number.parseInt(Math.random() * places.length)][0];
+                var exit = places[Number.parseInt(Math.random() * places.length)][places[0].length - 1];
+                entrance.type = 'entrance';
+                exit.type = 'exit';
+                return { places: places, entrance: entrance, exit: exit };
             }
         }]);
 

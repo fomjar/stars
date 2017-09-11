@@ -173,9 +173,17 @@
             this.y      = 0;
             this.width  = 1;
             this.height = 1;
-            this.scale      = 1;
-            this.alpha      = 1;
             this.visible    = true;
+            this.scale      = 1;
+            this.scale_draw = 1;
+            this.alpha      = 1;
+            this.alpha_draw = 1;
+            this.alpha_draw_mask    = 0;
+            this.border     = 2;
+            this.color_bg   = null;
+            this.color_bd   = 0xcccccc;
+            this.color_mask_light   = 0xffffff;
+            this.color_mask_dark    = 0x000000;
         }
         /**
          * 缓动动画。
@@ -271,15 +279,7 @@
     class DPane extends Data {
         constructor () {
             super();
-            this.round      = 1;
-            this.border     = 2;
-            this.scale_draw = 1;
-            this.alpha_draw = 1;
-            this.alpha_draw_mask    = 0.2;
-            this.color_bg   = null;
-            this.color_bd   = 0xcccccc;
-            this.color_mask_light   = 0xffffff;
-            this.color_mask_dark    = 0x000000;
+            this.round = 1;
         }
     }
     class DButton extends DPane {
@@ -376,6 +376,7 @@
                 y : 0,  // rate 0 - 1
             };
             this.radius = 10;
+            this.type = 'normal';  // normal / entrance / exit
         }
     }
     class DMapRegion extends DPane {
@@ -388,7 +389,7 @@
             this.col = 0;
         }
 
-        place (level) {
+        places (level) {
             this.level = level;
             this.row = 3 + Math.floor(level / 2);
             this.col = 3 + Math.ceil(level / 2);
@@ -398,7 +399,7 @@
                 return v;
             };
 
-            let place = [];
+            let places = [];
             for (let r = 0; r < this.row; r++) {
                 let row = [];
                 for (let c = 0; c < this.col; c++) {
@@ -409,9 +410,13 @@
                     p.grid.y = extreme_random();
                     row.push(p);
                 }
-                place.push(row);
+                places.push(row);
             }
-            return place;
+            let entrance = places[Number.parseInt(Math.random() * places.length)][0];
+            let exit    = places[Number.parseInt(Math.random() * places.length)][places[0].length - 1];
+            entrance.type = 'entrance';
+            exit.type = 'exit';
+            return {places, entrance, exit};
         }
     }
     class DMapWorld extends DPane {
