@@ -405,11 +405,6 @@
             this.level = level;
             this.row = 3 + Math.floor(level / 2);
             this.col = 3 + Math.ceil(level / 2);
-            let extreme_random = () => {
-                let v = 0;
-                v = Math.random();
-                return v;
-            };
 
             let places = [];
             for (let r = 0; r < this.row; r++) {
@@ -418,8 +413,8 @@
                     let p = new DMapPlace();
                     p.grid.r = r;
                     p.grid.c = c;
-                    p.grid.x = extreme_random();
-                    p.grid.y = extreme_random();
+                    p.grid.x = Math.random();
+                    p.grid.y = Math.random();
                     row.push(p);
                 }
                 places.push(row);

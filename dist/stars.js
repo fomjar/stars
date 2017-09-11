@@ -43126,11 +43126,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 this.level = level;
                 this.row = 3 + Math.floor(level / 2);
                 this.col = 3 + Math.ceil(level / 2);
-                var extreme_random = function extreme_random() {
-                    var v = 0;
-                    v = Math.random();
-                    return v;
-                };
 
                 var places = [];
                 for (var r = 0; r < this.row; r++) {
@@ -43139,8 +43134,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                         var p = new DMapPlace();
                         p.grid.r = r;
                         p.grid.c = c;
-                        p.grid.x = extreme_random();
-                        p.grid.y = extreme_random();
+                        p.grid.x = Math.random();
+                        p.grid.y = Math.random();
                         row.push(p);
                     }
                     places.push(row);
