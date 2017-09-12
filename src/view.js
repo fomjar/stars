@@ -222,10 +222,13 @@
                 this.view.text = v;
                 this.update();
             });
-            this.data.onset('align', () => this.update());
-            this.data.bindo(this.view.style, 'fontSize',    () => this.update());
-            this.data.bindo(this.view.style, 'fontWeight',  () => this.update());
-            this.data.bindo(this.view.style, 'fill');
+            this.data.bindo(this.view.style, 'align',           () => this.update());
+            this.data.bindo(this.view.style, 'fontSize',        () => this.update());
+            this.data.bindo(this.view.style, 'fontWeight',      () => this.update());
+            this.data.bindo(this.view.style, 'fill',            () => this.update());
+            this.data.bindo(this.view.style, 'breakWords',      () => this.update());
+            this.data.bindo(this.view.style, 'wordWrap',        () => this.update());
+            this.data.bindo(this.view.style, 'wordWrapWidth',   () => this.update());
         }
         
         update () {
@@ -620,11 +623,12 @@
             this.lbl_title = new VLabel(text);
             this.lbl_title.data.fontSize = 32;
             this.lbl_title.data.fill = '#cccccc';
+            this.lbl_title.data.wordWrapWidth = g.screen.width * 2 / 3;
 
             this.addChild(this.lbl_title);
         }
 
-        play (dn, delay = Math.min(3000, this.lbl_title.data.text.length * 1000 / 3)) {
+        play (dn, delay = Math.min(3000, this.lbl_title.data.text.length * 1000 / 2)) {
             if (!dn) throw new Error('illegal arguments, require: dn');
 
             g.app.stage.addChild(this);

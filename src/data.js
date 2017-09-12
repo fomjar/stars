@@ -272,6 +272,9 @@
             this.fontSize       = 14;
             this.fontWeight     = 100;
             this.fill           = '#333333';
+            this.breakWords     = true;
+            this.wordWrap       = true;
+            this.wordWrapWidth  = g.screen.width;
         }
         align_left   () {this.align = 'left';}
         align_center () {this.align = 'center';}

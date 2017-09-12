@@ -20839,11 +20839,33 @@ exports.default = CountLimiter;
     };
 
     var level_next = function level_next() {
-        new view.VInterlude('世界失去和平，战乱四起，我们要团结起来，然后逃离这个星球！').play(function () {
-            g.view.map.next();
-            g.app.stage.addChild(g.view.map.region);
-            g.view.pane_operate.show(1000);
-        });
+        var interlude = function interlude() {
+            new view.VInterlude('\u7B2C' + (g.view.map.data.level + 1) + '\u5C42').play(function () {
+                g.app.stage.addChild(g.view.pane_resource);
+                g.app.stage.addChild(g.view.pane_operate);
+                g.view.pane_resource.show(1000);
+                g.view.pane_operate.show(1000);
+
+                g.view.map.next();
+                g.app.stage.addChild(g.view.map.region);
+                g.view.map.region.show(3000);
+            });
+        };
+        if (!g.view.map.region) {
+            // first level
+            new view.VInterlude('世界失去和平，战乱四起，我们要团结起来，奋力一搏，如果实在打不过，也可以逃离这个星球！').play(function () {
+                interlude();
+            });
+        } else {
+            g.view.map.region.hide(1000);
+            g.view.pane_resource.hide(1000);
+            g.view.pane_operate.hide(function () {
+                g.view.map.region.remove();
+                g.view.pane_resource.remove();
+                g.view.pane_operate.remove();
+                interlude();
+            }, 1000);
+        }
     };
 
     var init_launcher = function init_launcher() {
@@ -20859,12 +20881,6 @@ exports.default = CountLimiter;
                 g.view.pane_operate = new view.VPaneOperate();
                 g.view.hero = new view.VHero();
                 g.view.map = new view.VMapWorld(g.view.hero);
-
-                g.app.stage.addChild(g.view.pane_resource);
-                g.app.stage.addChild(g.view.pane_operate);
-
-                g.view.pane_resource.show(1000);
-                g.view.pane_operate.show(1000);
 
                 level_next();
             }, 1000);
@@ -42120,7 +42136,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
                 _this6.view.text = v;
                 _this6.update();
             });
-            _this6.data.onset('align', function () {
+            _this6.data.bindo(_this6.view.style, 'align', function () {
                 return _this6.update();
             });
             _this6.data.bindo(_this6.view.style, 'fontSize', function () {
@@ -42129,7 +42145,18 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _this6.data.bindo(_this6.view.style, 'fontWeight', function () {
                 return _this6.update();
             });
-            _this6.data.bindo(_this6.view.style, 'fill');
+            _this6.data.bindo(_this6.view.style, 'fill', function () {
+                return _this6.update();
+            });
+            _this6.data.bindo(_this6.view.style, 'breakWords', function () {
+                return _this6.update();
+            });
+            _this6.data.bindo(_this6.view.style, 'wordWrap', function () {
+                return _this6.update();
+            });
+            _this6.data.bindo(_this6.view.style, 'wordWrapWidth', function () {
+                return _this6.update();
+            });
             return _this6;
         }
 
@@ -42792,6 +42819,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             _this21.lbl_title = new VLabel(text);
             _this21.lbl_title.data.fontSize = 32;
             _this21.lbl_title.data.fill = '#cccccc';
+            _this21.lbl_title.data.wordWrapWidth = g.screen.width * 2 / 3;
 
             _this21.addChild(_this21.lbl_title);
             return _this21;
@@ -42802,7 +42830,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
             value: function play(dn) {
                 var _this22 = this;
 
-                var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Math.min(3000, this.lbl_title.data.text.length * 1000 / 3);
+                var delay = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : Math.min(3000, this.lbl_title.data.text.length * 1000 / 2);
 
                 if (!dn) throw new Error('illegal arguments, require: dn');
 
@@ -43183,6 +43211,9 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             _this2.fontSize = 14;
             _this2.fontWeight = 100;
             _this2.fill = '#333333';
+            _this2.breakWords = true;
+            _this2.wordWrap = true;
+            _this2.wordWrapWidth = g.screen.width;
             return _this2;
         }
 

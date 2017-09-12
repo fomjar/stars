@@ -39,7 +39,7 @@
 
     let level_next = () => {
         let interlude = () => {
-            new view.VInterlude('世界失去和平，战乱四起，我们要团结起来，然后逃离这个星球！').play(() => {
+            new view.VInterlude(`第${g.view.map.data.level + 1}层`).play(() => {
                 g.app.stage.addChild(g.view.pane_resource);
                 g.app.stage.addChild(g.view.pane_operate);
                 g.view.pane_resource.show(1000);
@@ -47,13 +47,22 @@
 
                 g.view.map.next();
                 g.app.stage.addChild(g.view.map.region);
-                g.view.map.region.show(2000);
+                g.view.map.region.show(3000);
             });
         };
-        if (g.view.pane_operate.parent) {
-
+        if (!g.view.map.region) {   // first level
+            new view.VInterlude('世界失去和平，战乱四起，我们要团结起来，奋力一搏，如果实在打不过，也可以逃离这个星球！').play(() => {
+                interlude();
+            });
         } else {
-            
+            g.view.map.region.hide(1000);
+            g.view.pane_resource.hide(1000);
+            g.view.pane_operate.hide(() => {
+                g.view.map.region.remove();
+                g.view.pane_resource.remove();
+                g.view.pane_operate.remove();
+                interlude();
+            }, 1000);
         }
     };
 
