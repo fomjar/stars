@@ -270,11 +270,11 @@
         }
 
         draw_back () {
-            this.drawRoundedRect(- this.data.width / 2 * this.data.scale_draw,
-                                 - this.data.height / 2 * this.data.scale_draw,
-                                 this.data.width * this.data.scale_draw,
-                                 this.data.height * this.data.scale_draw,
-                                 this.data.round * this.data.scale_draw);
+            this.drawRoundedRect(- this.data.width / 2,
+                                 - this.data.height / 2,
+                                 this.data.width,
+                                 this.data.height,
+                                 this.data.round);
         }
     }
 
@@ -446,7 +446,7 @@
         }
 
         draw_back () {
-            this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+            this.drawCircle(0, 0, this.data.radius);
         }
     }
 
@@ -471,25 +471,46 @@
         }
 
         draw_back () {
-            this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+            this.drawCircle(0, 0, this.data.radius);
         }
 
         draw_fore () {
-            switch (this.data.type) {
-            case 'normal':
-                break;
-            case 'entrance':
-                this.lineStyle(this.data.border, 0x0000ff, this.data.alpha_draw);
-                this.beginFill(0x000000, 0);
-                this.drawRect(- this.data.radius / 3, - this.data.radius / 3, this.data.radius * 2 / 3, this.data.radius * 2 / 3);
-                this.endFill();
-                break;
-            case 'exit':
-                this.lineStyle(this.data.border, 0x00ff00, this.data.alpha_draw);
-                this.beginFill(0x000000, 0);
-                this.drawRect(- this.data.radius / 3, - this.data.radius / 3, this.data.radius * 2 / 3, this.data.radius * 2 / 3);
-                this.endFill();
-                break;
+            for (let i = 0; i < this.data.type.length; i++) {
+                let type = this.data.type[i];
+                let x = - this.data.radius + (i + 1) * this.data.radius * 2 / (this.data.type.length + 1);
+                let w = this.data.radius / (this.data.type.length + 1) * 2 / 3;
+                switch (type) {
+                case 'entrance':
+                    this.lineStyle(0);
+                    this.beginFill(0x0000ff, this.data.alpha_draw);
+                    this.drawRect(x - w, - w, w * 2, w * 2);
+                    this.endFill();
+                    break;
+                case 'exit':
+                    this.lineStyle(0);
+                    this.beginFill(0x00ff00, this.data.alpha_draw);
+                    this.drawRect(x - w, - w, w * 2, w * 2);
+                    this.endFill();
+                    break;
+                case 'battle':
+                    this.lineStyle(0);
+                    this.beginFill(0xff6666, this.data.alpha_draw);
+                    this.drawCircle(x, 0, w);
+                    this.endFill();
+                    break;
+                case 'event':
+                    this.lineStyle(0);
+                    this.beginFill(0x66ff66, this.data.alpha_draw);
+                    this.drawCircle(x, 0, w);
+                    this.endFill();
+                    break;
+                case 'trade':
+                    this.lineStyle(0);
+                    this.beginFill(0x6666ff, this.data.alpha_draw);
+                    this.drawCircle(x, 0, w);
+                    this.endFill();
+                    break;
+                }
             }
         }
 

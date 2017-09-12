@@ -162,7 +162,21 @@
         return grids;
     };
 
-    let tool = {tween, onget, onset, bind, bindall, grid};
+    let rate_random = (rate, data) => {
+        if (!rate || !data) throw new Error('illegal arguments, require: rate, data');
+        if (rate.length != data.length) throw new Error(`illegal arguments, rate(${rate}) and data(${data.length}) must be same count`);
+        if (0 == rate.length) throw new Error('illegal arguments, empty data and rate');
+
+        let total_rate = rate.reduce((r1, r2) => r1 + r2);
+        let value = Math.random() * total_rate;
+        for (let i = 0; i < rate.length; i++) {
+            let value_before = (0 === i ? 0 : rate.slice(0, i).reduce((r1, r2) => r1 + r2));
+            if (value_before <= value && value <= value_before + rate[i]) return data[i];
+        }
+        throw new Error(`error occurred when rate random: rate = [${String(rate)}], data = [${String(data)}]`);
+    };
+
+    let tool = {tween, onget, onset, bind, bindall, grid, rate_random};
 
     /**
      * 数据模型定义
@@ -175,7 +189,6 @@
             this.height = 1;
             this.visible    = true;
             this.scale      = 1;
-            this.scale_draw = 1;
             this.alpha      = 1;
             this.alpha_draw = 1;
             this.alpha_draw_mask    = 0;
@@ -317,7 +330,7 @@
         }
         
         style_large () {
-            this.width      = 96;
+            this.width      = 128;
             this.height     = 48;
         }
     }
@@ -400,7 +413,16 @@
                 y : 0,  // rate 0 - 1
             };
             this.radius = 10;
-            this.type = 'normal';  // normal / entrance / exit
+            this.type = [];   // entrance / exit / battle / event / trade
+
+            let number = rate_random([6, 3, 1], [1, 2, 3]);
+            for (let i = 0; i < number; i++) {
+                let type = null;
+                while (null === type || this.type.includes(type)) {
+                    type = rate_random([5, 4, 1], ['battle', 'event', 'trade']);
+                }
+                this.type.push(type);
+            }
         }
     }
     class DMapRegion extends DPane {
@@ -437,8 +459,8 @@
             }
             let entrance = places[Number.parseInt(Math.random() * places.length)][0];
             let exit    = places[Number.parseInt(Math.random() * places.length)][places[0].length - 1];
-            entrance.type = 'entrance';
-            exit.type = 'exit';
+            entrance.type.push('entrance');
+            exit.type.push('exit');
             return {places, entrance, exit};
         }
     }

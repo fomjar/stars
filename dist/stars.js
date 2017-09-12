@@ -20841,19 +20841,19 @@ exports.default = CountLimiter;
     var level_next = function level_next() {
         var interlude = function interlude() {
             new view.VInterlude('\u7B2C' + (g.view.map.data.level + 1) + '\u5C42').play(function () {
+                g.view.map.next();
+                g.app.stage.addChild(g.view.map.region);
+                g.view.map.region.show(3000);
+
                 g.app.stage.addChild(g.view.pane_resource);
                 g.app.stage.addChild(g.view.pane_operate);
                 g.view.pane_resource.show(1000);
                 g.view.pane_operate.show(1000);
-
-                g.view.map.next();
-                g.app.stage.addChild(g.view.map.region);
-                g.view.map.region.show(3000);
             });
         };
         if (!g.view.map.region) {
             // first level
-            new view.VInterlude('世界失去和平，战乱四起，我们要团结起来，奋力一搏，如果实在打不过，也可以逃离这个星球！').play(function () {
+            new view.VInterlude('不管因为什么原因啦，总而言之，我们要在宇宙星辰中开始探索了！').play(function () {
                 interlude();
             });
         } else {
@@ -42213,7 +42213,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(VPane, [{
             key: 'draw_back',
             value: function draw_back() {
-                this.drawRoundedRect(-this.data.width / 2 * this.data.scale_draw, -this.data.height / 2 * this.data.scale_draw, this.data.width * this.data.scale_draw, this.data.height * this.data.scale_draw, this.data.round * this.data.scale_draw);
+                this.drawRoundedRect(-this.data.width / 2, -this.data.height / 2, this.data.width, this.data.height, this.data.round);
             }
         }]);
 
@@ -42451,7 +42451,7 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(VHero, [{
             key: 'draw_back',
             value: function draw_back() {
-                this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+                this.drawCircle(0, 0, this.data.radius);
             }
         }]);
 
@@ -42489,26 +42489,47 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
         _createClass(VMapPlace, [{
             key: 'draw_back',
             value: function draw_back() {
-                this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
+                this.drawCircle(0, 0, this.data.radius);
             }
         }, {
             key: 'draw_fore',
             value: function draw_fore() {
-                switch (this.data.type) {
-                    case 'normal':
-                        break;
-                    case 'entrance':
-                        this.lineStyle(this.data.border, 0x0000ff, this.data.alpha_draw);
-                        this.beginFill(0x000000, 0);
-                        this.drawRect(-this.data.radius / 3, -this.data.radius / 3, this.data.radius * 2 / 3, this.data.radius * 2 / 3);
-                        this.endFill();
-                        break;
-                    case 'exit':
-                        this.lineStyle(this.data.border, 0x00ff00, this.data.alpha_draw);
-                        this.beginFill(0x000000, 0);
-                        this.drawRect(-this.data.radius / 3, -this.data.radius / 3, this.data.radius * 2 / 3, this.data.radius * 2 / 3);
-                        this.endFill();
-                        break;
+                for (var i = 0; i < this.data.type.length; i++) {
+                    var type = this.data.type[i];
+                    var x = -this.data.radius + (i + 1) * this.data.radius * 2 / (this.data.type.length + 1);
+                    var w = this.data.radius / (this.data.type.length + 1) * 2 / 3;
+                    switch (type) {
+                        case 'entrance':
+                            this.lineStyle(0);
+                            this.beginFill(0x0000ff, this.data.alpha_draw);
+                            this.drawRect(x - w, -w, w * 2, w * 2);
+                            this.endFill();
+                            break;
+                        case 'exit':
+                            this.lineStyle(0);
+                            this.beginFill(0x00ff00, this.data.alpha_draw);
+                            this.drawRect(x - w, -w, w * 2, w * 2);
+                            this.endFill();
+                            break;
+                        case 'battle':
+                            this.lineStyle(0);
+                            this.beginFill(0xff6666, this.data.alpha_draw);
+                            this.drawCircle(x, 0, w);
+                            this.endFill();
+                            break;
+                        case 'event':
+                            this.lineStyle(0);
+                            this.beginFill(0x66ff66, this.data.alpha_draw);
+                            this.drawCircle(x, 0, w);
+                            this.endFill();
+                            break;
+                        case 'trade':
+                            this.lineStyle(0);
+                            this.beginFill(0x6666ff, this.data.alpha_draw);
+                            this.drawCircle(x, 0, w);
+                            this.endFill();
+                            break;
+                    }
                 }
             }
         }, {
@@ -43068,7 +43089,25 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         return grids;
     };
 
-    var tool = { tween: tween, onget: onget, onset: onset, bind: bind, bindall: bindall, grid: grid };
+    var rate_random = function rate_random(rate, data) {
+        if (!rate || !data) throw new Error('illegal arguments, require: rate, data');
+        if (rate.length != data.length) throw new Error('illegal arguments, rate(' + rate + ') and data(' + data.length + ') must be same count');
+        if (0 == rate.length) throw new Error('illegal arguments, empty data and rate');
+
+        var total_rate = rate.reduce(function (r1, r2) {
+            return r1 + r2;
+        });
+        var value = Math.random() * total_rate;
+        for (var i = 0; i < rate.length; i++) {
+            var value_before = 0 === i ? 0 : rate.slice(0, i).reduce(function (r1, r2) {
+                return r1 + r2;
+            });
+            if (value_before <= value && value <= value_before + rate[i]) return data[i];
+        }
+        throw new Error('error occurred when rate random: rate = [' + String(rate) + '], data = [' + String(data) + ']');
+    };
+
+    var tool = { tween: tween, onget: onget, onset: onset, bind: bind, bindall: bindall, grid: grid, rate_random: rate_random };
 
     /**
      * 数据模型定义
@@ -43084,7 +43123,6 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
             this.height = 1;
             this.visible = true;
             this.scale = 1;
-            this.scale_draw = 1;
             this.alpha = 1;
             this.alpha_draw = 1;
             this.alpha_draw_mask = 0;
@@ -43295,7 +43333,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         }, {
             key: 'style_large',
             value: function style_large() {
-                this.width = 96;
+                this.width = 128;
                 this.height = 48;
             }
         }]);
@@ -43429,7 +43467,16 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 y: 0 // rate 0 - 1
             };
             _this10.radius = 10;
-            _this10.type = 'normal'; // normal / entrance / exit
+            _this10.type = []; // entrance / exit / battle / event / trade
+
+            var number = rate_random([6, 3, 1], [1, 2, 3]);
+            for (var i = 0; i < number; i++) {
+                var type = null;
+                while (null === type || _this10.type.includes(type)) {
+                    type = rate_random([5, 4, 1], ['battle', 'event', 'trade']);
+                }
+                _this10.type.push(type);
+            }
             return _this10;
         }
 
@@ -43478,8 +43525,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
                 }
                 var entrance = places[Number.parseInt(Math.random() * places.length)][0];
                 var exit = places[Number.parseInt(Math.random() * places.length)][places[0].length - 1];
-                entrance.type = 'entrance';
-                exit.type = 'exit';
+                entrance.type.push('entrance');
+                exit.type.push('exit');
                 return { places: places, entrance: entrance, exit: exit };
             }
         }]);

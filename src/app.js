@@ -40,18 +40,18 @@
     let level_next = () => {
         let interlude = () => {
             new view.VInterlude(`第${g.view.map.data.level + 1}层`).play(() => {
+                g.view.map.next();
+                g.app.stage.addChild(g.view.map.region);
+                g.view.map.region.show(3000);
+
                 g.app.stage.addChild(g.view.pane_resource);
                 g.app.stage.addChild(g.view.pane_operate);
                 g.view.pane_resource.show(1000);
                 g.view.pane_operate.show(1000);
-
-                g.view.map.next();
-                g.app.stage.addChild(g.view.map.region);
-                g.view.map.region.show(3000);
             });
         };
         if (!g.view.map.region) {   // first level
-            new view.VInterlude('世界失去和平，战乱四起，我们要团结起来，奋力一搏，如果实在打不过，也可以逃离这个星球！').play(() => {
+            new view.VInterlude('不管因为什么原因啦，总而言之，我们要在宇宙星辰中开始探索了！').play(() => {
                 interlude();
             });
         } else {
