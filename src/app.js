@@ -50,7 +50,11 @@
                 g.view.map.region.show(2000);
             });
         };
-        // if ()
+        if (g.view.pane_operate.parent) {
+
+        } else {
+            
+        }
     };
 
     let init_launcher = () => {
