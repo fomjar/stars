@@ -31,13 +31,13 @@
      * @param  {Object} ta 目标对象
      * @param  {String} pr 目标属性
      * @param  {Number} to 目标值
-     * @param  {Number} tm 总变化时间（MS），默认160
      * @param  {Function} dn 动画完成时的回调
+     * @param  {Number} tm 总变化时间（MS），默认80
+     * @param  {Function} tn tween函数
      */
-    let tween = function tween (ta, pr, to, dn, tm = 160) {
+    let tween = function tween (ta, pr, to, dn, tm = 160, tn = t.Circ.easeOut) {
         if (!ta || !pr || undefined == to) throw new Error('illegal arguments, require at least 3');
         
-        let fn      = t.Circ.easeOut;
         let from    = ta[pr];
         let time    = 0;
         let begin   = new Date().getTime();
@@ -49,7 +49,7 @@
         }
         ta._tweener[pr] = delta => {
             time = new Date().getTime() - begin;
-            ta[pr] = fn(Math.min(time, tm), from, to - from, tm);
+            ta[pr] = tn(Math.min(time, tm), from, to - from, tm);
             if (time >= tm) {
                 ta[pr] = to;
                 g.app.ticker.remove(ta._tweener[pr]);
@@ -179,6 +179,7 @@
             this.alpha      = 1;
             this.alpha_draw = 1;
             this.alpha_draw_mask    = 0;
+            this.rotation   = 0;
             this.border     = 2;
             this.color_bg   = null;
             this.color_bd   = 0xcccccc;
@@ -193,8 +194,8 @@
          * @param  {Function} dn 动画完成时的回调
          * @return {Data}     当前对象
          */
-        tween (pr, to, dn, tm) {
-            tool.tween(this, pr, to, dn, tm);
+        tween (pr, to, dn, tm, tn) {
+            tool.tween(this, pr, to, dn, tm, tn);
             return this;
         }
         /**
@@ -311,6 +312,11 @@
             this.width      = 72;
             this.height     = 24;
         }
+        
+        style_large () {
+            this.width      = 96;
+            this.height     = 48;
+        }
     }
     class DShadow extends DPane {
         constructor () {
@@ -373,9 +379,12 @@
     class DHero extends Data {
         constructor () {
             super();
+            this.color_bd   = 0xff0000;
+
+            this.radius = 18;
         }
     }
-    class DMapPlace extends DPane {
+    class DMapPlace extends DButton {
         constructor () {
             super();
             this.border = 1;
@@ -403,8 +412,12 @@
 
         places (level) {
             this.level = level;
-            this.row = 3 + Math.floor(level / 2);
-            this.col = 3 + Math.ceil(level / 2);
+            this.row = 5 + Math.floor(level / 2);
+            this.col = 5 + Math.ceil(level / 2);
+            this.width      = this.col * 160;
+            this.height     = this.row * 160;
+            this.x          = g.screen.width / 2;
+            this.y          = g.screen.height / 2;
 
             let places = [];
             for (let r = 0; r < this.row; r++) {
@@ -436,6 +449,24 @@
         }
     }
 
+    class DLauncher extends Data {
+        constructor () {
+            super();
+
+            this.x = g.screen.width  / 2;
+            this.y = g.screen.height / 2;
+        }
+    }
+
+    class DInterlude extends Data {
+        constructor () {
+            super();
+
+            this.x = g.screen.width  / 2;
+            this.y = g.screen.height / 2;
+        }
+    }
+
     module.exports = Object.assign({
         Data,
         DLabel,
@@ -449,6 +480,8 @@
         DMapPlace,
         DMapRegion,
         DMapWorld,
+        DLauncher,
+        DInterlude,
     }, tool);
 
 }

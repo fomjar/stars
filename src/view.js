@@ -3,13 +3,14 @@
     let pixi = require('pixi.js');
     let g    = require('./global');
     let data = require('./data');
+    let t    = require('./tween');
 
     class View extends pixi.Graphics {
         constructor () {
             super();
             
             let find_data = proto => {
-                if (Object.is(proto, data.Data.prototype)) this.data = new data.Data();
+                if (Object.is(proto, View.prototype)) this.data = new data.Data();
                 else {
                     let name = `D${proto.constructor.name.slice(1)}`;
                     if (data[name]) this.data = new data[name]();
@@ -18,10 +19,10 @@
             };
             find_data(Object.getPrototypeOf(this));
 
-            this.state      = 'normal';    // normal / over / down
-            this.onnormal   = [];
-            this.onover     = [];
-            this.ondown     = [];
+            this.state      = 'norm';    // norm / over / down
+            this.state_norm = [];
+            this.state_over = [];
+            this.state_down = [];
             
             this.data.bindo(this.position, 'x');
             this.data.bindo(this.position, 'y');
@@ -33,27 +34,25 @@
                 this.scale.y = v;
             });
             this.data.bindo(this, 'visible');
+            this.data.bindo(this, 'rotation');
 
             data.onset(this, 'state', (k, v) => {
                 switch (v) {
-                case 'normal': for (let on of this.onnormal) on(); break;
-                case 'over'  : for (let on of this.onover)   on(); break;
-                case 'down'  : for (let on of this.ondown)   on(); break;
+                case 'norm': for (let on of this.state_norm) on(); break;
+                case 'over': for (let on of this.state_over) on(); break;
+                case 'down': for (let on of this.state_down) on(); break;
                 }
             });
-            this.auto_interactive();
         }
         
         draw () {
-            this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
-            let color_bg = this.data.color_bg;
-            let alpha_draw = this.data.alpha_draw;
-            if (null == color_bg) {
-                color_bg = 0x000000;
-                alpha_draw = 0;
-            };
-            this.beginFill(color_bg, alpha_draw);
+            if (0 != this.data.border && null != this.data.color_bd)
+                this.lineStyle(this.data.border, this.data.color_bd, this.data.alpha_draw);
+            if (null != this.data.color_bg)
+                this.beginFill(this.data.color_bg, this.data.alpha_draw);
+
             this.draw_back();
+
             this.endFill();
 
             this.draw_fore();
@@ -66,19 +65,21 @@
         draw_fore () {};
 
         draw_mask () {
-            let color_mask = this.data.color_mask_light;
-            switch (this.state) {
-                case 'over':
-                    color_mask = this.data.color_mask_light;
-                    break;
-                case 'down':
-                    color_mask = this.data.color_mask_dark;
-                    break;
+            if (this.interactive) {
+                let color_mask = this.data.color_mask_light;
+                switch (this.state) {
+                    case 'over':
+                        color_mask = this.data.color_mask_light;
+                        break;
+                    case 'down':
+                        color_mask = this.data.color_mask_dark;
+                        break;
+                }
+                this.lineStyle(this.data.border, color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+                this.beginFill(color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
+                this.draw_back();
+                this.endFill();
             }
-            this.lineStyle(this.data.border, color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
-            this.beginFill(color_mask, this.data.alpha_draw * this.data.alpha_draw_mask);
-            this.draw_back();
-            this.endFill();
         }
 
         drawLine(x1, y1, x2, y2) {
@@ -146,6 +147,8 @@
 
             return this;
         }
+
+        remove () {this.parent.removeChild(this);}
         
         layer_top () {return this.layer(0xffffffff);}
         
@@ -162,36 +165,46 @@
             return this;
         }
 
+        click (action) {
+            this.interactive    = true;
+            this.on('pointerup', action);
+            return this;
+        }
+
         auto_interactive () {
             this.interactive    = true;
             
             this.on('pointerover',      () => this.state = 'over');
-            this.on('pointerout',       () => this.state = 'normal');
+            this.on('pointerout',       () => this.state = 'norm');
             this.on('pointerdown',      () => this.state = 'down');
             this.on('pointerup',        () => this.state = 'over');
-            this.on('pointerupoutside', () => this.state = 'normal');
+            this.on('pointerupoutside', () => this.state = 'norm');
 
             return this;
         }
 
+        on_state_norm (fn) {this.state_norm.push(fn); return this;}
+        on_state_over (fn) {this.state_over.push(fn); return this;}
+        on_state_down (fn) {this.state_down.push(fn); return this;}
+
         auto_interactive_mask (alpha = 0.2) {
-            this.onnormal.push(() => this.data.tween('alpha_draw_mask', 0));
-            this.onover.push(() => this.data.tween('alpha_draw_mask', alpha));
-            this.ondown.push(() => this.data.tween('alpha_draw_mask', alpha));
+            this.on_state_norm(() => this.data.tween('alpha_draw_mask', 0));
+            this.on_state_over(() => this.data.tween('alpha_draw_mask', alpha));
+            this.on_state_down(() => this.data.tween('alpha_draw_mask', alpha));
 
             return this;
         }
 
         auto_interactive_scale (scale = 1.05) {
-            this.onnormal.push(() => this.data.tween('scale', 1));
-            this.onover.push(() => this.data.tween('scale', scale));
-            this.ondown.push(() => this.data.tween('scale', 1));
+            this.on_state_norm(() => this.data.tween('scale', 1));
+            this.on_state_over(() => this.data.tween('scale', scale));
+            this.on_state_down(() => this.data.tween('scale', 1));
 
             return this;
         }
 
         auto_interactive_layer () {
-            this.onover.push(() => this.layer_top());
+            this.on_state_over(() => this.layer_top());
 
             return this;
         }
@@ -275,6 +288,7 @@
                 this.label.data.fontSize    = v * 3 / 5;
             });
 
+            this.auto_interactive();
             this.auto_interactive_mask();
             this.auto_interactive_layer();
         }
@@ -300,9 +314,10 @@
             this.auto_interactive_scale();
             return this;
         }
-
-        click (action) {
-            this.on('pointerup', action);
+        style_large () {
+            this.buttonMode = true;
+            this.data.style_large();
+            this.auto_interactive_scale();
             return this;
         }
     }
@@ -366,15 +381,15 @@
         show (dn) {
             g.app.stage.addChild(this.shadow);
             g.app.stage.addChild(this);
-            super.show(dn, 500);
+            super.show(dn, 400);
         }
 
         hide (dn) {
             super.hide(() => {
-                this.parent.removeChild(this);
-                this.shadow.parent.removeChild(this.shadow);
+                this.remove();
+                this.shadow.remove();
                 if (dn) dn();
-            }, 500);
+            }, 400);
         }
     }
 
@@ -415,16 +430,41 @@
     class VHero extends View {
         constructor () {
             super();
+            this.place = null;
+
+            let fn = () => {
+                this.data.tween('alpha_draw', 0.2, () => {
+                    this.data.tween('alpha_draw', 1, () => {
+                        fn();
+                    }, 1000, t.Linear);
+                }, 1000, t.Linear);
+            };
+            fn();
+        }
+
+        draw_back () {
+            this.drawCircle(0, 0, this.data.radius * this.data.scale_draw);
         }
     }
 
-    class VMapPlace extends VPane {
+    class VMapPlace extends VButton {
         constructor (region) {
             super();
             this.region = region;
 
+            this.auto_interactive();
             this.auto_interactive_mask();
             this.auto_interactive_scale(1.5);
+            this.on_state_over(() => {
+                let fn = () => {
+                    this.data.rotation = 0;
+                    this.data.tween('rotation', 2 * Math.PI, fn, 3000, t.Linear);
+                };
+                fn();
+            });
+            this.on_state_norm(() => {
+                this.data.tween('rotation', 0, () => {this.data.rotation = 0;}, 10, t.Linear);
+            });
         }
 
         draw_back () {
@@ -436,15 +476,15 @@
             case 'normal':
                 break;
             case 'entrance':
-                this.lineStyle(this.data.border * 2, 0x00ff00, this.data.alpha_draw);
+                this.lineStyle(this.data.border, 0x0000ff, this.data.alpha_draw);
                 this.beginFill(0x000000, 0);
-                this.drawCircle(0, 0, this.data.radius / 2);
+                this.drawRect(- this.data.radius / 3, - this.data.radius / 3, this.data.radius * 2 / 3, this.data.radius * 2 / 3);
                 this.endFill();
                 break;
             case 'exit':
-                this.lineStyle(this.data.border * 2, 0x0000ff, this.data.alpha_draw);
+                this.lineStyle(this.data.border, 0x00ff00, this.data.alpha_draw);
                 this.beginFill(0x000000, 0);
-                this.drawCircle(0, 0, this.data.radius / 2);
+                this.drawRect(- this.data.radius / 3, - this.data.radius / 3, this.data.radius * 2 / 3, this.data.radius * 2 / 3);
                 this.endFill();
                 break;
             }
@@ -456,10 +496,37 @@
             this.data.x = - this.region.data.width  / 2 + (this.data.grid.c + this.data.grid.x) * grid_width;
             this.data.y = - this.region.data.height / 2 + (this.data.grid.r + this.data.grid.y) * grid_height;
         }
+
+        hero_move (hero) {
+            let move_check = () => {
+                if (!hero.place) return true;
+                return 1 == Math.abs(this.data.grid.r - hero.place.data.grid.r)
+                          + Math.abs(this.data.grid.c - hero.place.data.grid.c);
+            };
+            let move_do = () => {
+                if (!hero.place) {
+                    hero.data.x = this.data.x;
+                    hero.data.y = this.data.y;
+                    this.region.data.x = g.screen.width  / 2 - this.data.x;
+                    this.region.data.y = g.screen.height / 2 - this.data.y;
+                } else {
+                    let time = 1000;
+                    hero.data.tween('x', this.data.x, null, time);
+                    hero.data.tween('y', this.data.y, null, time);
+                    this.region.data.tween('x', g.screen.width  / 2 - this.data.x, null, time);
+                    this.region.data.tween('y', g.screen.height / 2 - this.data.y, null, time);
+                }
+                hero.place = this;
+            };
+
+            if (move_check()) move_do();
+
+            return this;
+        }
     }
 
     class VMapRegion extends VPane {
-        constructor (level) {
+        constructor (level, hero) {
             super();
 
             this.places = [];
@@ -472,6 +539,7 @@
                 for (let p of row) {
                     let v = new VMapPlace(this);
                     Object.assign(v.data, p);
+                    v.click(() => {v.hero_move(hero);});
                     r.push(v);
                     this.addChild(v);
                 }
@@ -487,20 +555,13 @@
                     }
                 }
             }
-
             this.data.onset('width',  update);
             this.data.onset('height', update);
-        }
 
-        show (dn, tm) {
-            this.data.scale = 0.5;
-            super.show(tm);
-            this.data.tween('scale', 1, dn, tm);
-        }
+            this.hero = hero;
+            this.addChild(hero);
 
-        hide (dn, tm) {
-            super.hide(tm);
-            this.data.tween('scale', 0.5, dn, tm);
+            this.entrance.hero_move(hero);
         }
 
         draw_back () {
@@ -523,68 +584,58 @@
     }
 
     class VMapWorld extends VPane {
-        constructor () {
+        constructor (hero) {
             super();
 
+            this.hero = hero;
             this.region = null;
-            this.next();
         }
 
         next () {
-            this.region = new VMapRegion(++this.data.level);
+            this.region = new VMapRegion(++this.data.level, this.hero);
         }
     }
 
-    class VDialogMap extends VDialog {
-        constructor (map) {
+    class VLauncher extends View {
+        constructor () {
             super();
-            this.data.width  = g.screen.width * 2 / 3;
-            this.data.height = g.screen.height * 2 / 3;
 
-            let padding = 8;
-            this.btn_toggle = new VButton('切').style_icon_small();
-            this.btn_toggle.data.x = - this.data.width / 2 + this.btn_toggle.data.width / 2 + padding;
-            this.btn_toggle.data.y = - this.data.height / 2 + this.btn_toggle.data.height / 2 + padding;
-            this.btn_toggle.click(() => this.toggle());
-            this.addChild(this.btn_toggle);
+            let offset = 100;
+            this.lbl_title = new VLabel('星球物语');
+            this.lbl_title.data.fontSize = 80;
+            this.lbl_title.data.fill = '#cccccc';
+            this.lbl_title.y = - offset;
+            this.btn_start = new VButton('启程').style_large();
+            this.btn_start.y = offset;
 
-            this.btn_close = new VButton('关').style_icon_small();
-            this.btn_close.data.x = this.data.width / 2 - this.btn_toggle.data.width / 2 - padding;
-            this.btn_close.data.y = - this.data.height / 2 + this.btn_toggle.data.height / 2 + padding;
-            this.btn_close.click(() => this.hide());
-            this.addChild(this.btn_close);
+            this.addChild(this.lbl_title);
+            this.addChild(this.btn_start);
+        }
+    }
 
-            this.map        = map;
-            this.map_cur    = null;
-            this.padding    = 80;
+    class VInterlude extends View {
+        constructor (text) {
+            super();
 
-            this.toggling = false;
-            this.toggle();
+            this.lbl_title = new VLabel(text);
+            this.lbl_title.data.fontSize = 32;
+            this.lbl_title.data.fill = '#cccccc';
+
+            this.addChild(this.lbl_title);
         }
 
-        toggle () {
-            if (this.toggling) return;
-            this.toggling = true;
+        play (dn, delay = Math.min(3000, this.lbl_title.data.text.length * 1000 / 3)) {
+            if (!dn) throw new Error('illegal arguments, require: dn');
 
-            let map_old = this.map_cur;
-            if (map_old) {
-                map_old.hide(() => {
-                    this.removeChild(map_old);
-                });
-            }
-
-            if (Object.is(this.map_cur, this.map) || !this.map_cur) this.map_cur = this.map.region;
-            else this.map_cur = this.map;
-            this.map_cur.data.width     = this.data.width - this.padding;
-            this.map_cur.data.height    = this.data.height - this.padding;
-
-            this.addChild(this.map_cur);
-            this.map_cur.layer_bot();
-            if (map_old) {
-                this.map_cur.show(() => {
-                    this.toggling = false;
-                });
-            } else {this.toggling = false;}
+            g.app.stage.addChild(this);
+            this.show(() => {
+                window.setTimeout(() => {
+                    this.hide(() => {
+                        this.remove();
+                        if (dn) dn();
+                    }, 1000);
+                }, delay);
+            }, 1000);
         }
     }
 
@@ -600,7 +651,8 @@
         VHero,
         VMapRegion,
         VMapWorld,
-        VDialogMap,
+        VLauncher,
+        VInterlude,
     };
 
 }
