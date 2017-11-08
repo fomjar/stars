@@ -649,7 +649,7 @@
             this.addChild(this.lbl_title);
         }
 
-        play (dn, delay = Math.min(3000, this.lbl_title.data.text.length * 1000 / 2)) {
+        play (dn, delay = Math.max(3000, this.lbl_title.data.text.length * 1000 / 2)) {
             if (!dn) throw new Error('illegal arguments, require: dn');
 
             g.app.stage.addChild(this);
